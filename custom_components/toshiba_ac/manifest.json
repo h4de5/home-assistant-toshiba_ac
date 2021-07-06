@@ -1,0 +1,15 @@
+{
+  "domain": "toshiba_ac",
+  "name": "Toshiba AC",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/toshiba_ac",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@h4de5"
+  ],
+  "iot_class": "cloud_polling"
+}
