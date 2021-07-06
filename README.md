@@ -12,3 +12,6 @@ python3.9 example.py --username XX --password yy
 ```
 
 should list all found AC units under that account
+
+
+my first draft of an [Toshiba AC API client in PHP](https://gist.github.com/h4de5/7f97db0f4efc265e48904d4a84dab4fb)
