@@ -13,5 +13,7 @@ python3.9 example.py --username XX --password yy
 
 should list all found AC units under that account
 
+## more links and resources
 
-my first draft of an [Toshiba AC API client in PHP](https://gist.github.com/h4de5/7f97db0f4efc265e48904d4a84dab4fb)
+- Feature Request in the [home-assistant community](https://community.home-assistant.io/t/toshiba-home-ac-control/137698)
+- my first draft of an [Toshiba AC API client in PHP](https://gist.github.com/h4de5/7f97db0f4efc265e48904d4a84dab4fb)
