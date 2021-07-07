@@ -31,6 +31,11 @@ def main():
         for device in toshibaapi._devices:
             print('found device: ', device.print())
 
+    if toshibaapi._devices:
+        for device in toshibaapi._devices:
+            toshibaapi.get_device_status(device_id=device._id)
+            print('found device: ', device.print())
+
     # except BaseException as err:
     #     print("Exception: %s" % err)
     #     valid_login = False
