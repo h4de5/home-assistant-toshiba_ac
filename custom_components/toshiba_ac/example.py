@@ -15,30 +15,31 @@ def main():
         print('Please provice --username and --password')
         exit(1)
 
+    # try:
     toshibaapi = ToshibaApi(args.username, args.password)
 
-    # try:
-
     valid_login = toshibaapi.check_login()
-    print('generated access_token: ', toshibaapi._access_token)
-
-    if (not valid_login):
+    if not valid_login:
         print("Login failed")
         exit(1)
+
+    print('generated access_token: ', toshibaapi._access_token)
 
     toshibaapi.get_mapping()
     if toshibaapi._devices:
         for device in toshibaapi._devices:
-            print('found device: ', device.print())
+            print('found device: ', device)
 
-    if toshibaapi._devices:
         for device in toshibaapi._devices:
-            toshibaapi.get_device_status(device_id=device._id)
-            print('found device: ', device.print())
+            toshibaapi.get_device_status(device_id=device._ACId)
+            print('updated device: ', device)
+
+        toshibaapi.get_program()
+        for device in toshibaapi._devices:
+            print('found program: ', device._ACId, ' ', device._program)
 
     # except BaseException as err:
     #     print("Exception: %s" % err)
-    #     valid_login = False
 
 
 if __name__ == "__main__":
