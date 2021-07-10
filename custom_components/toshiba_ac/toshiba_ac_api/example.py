@@ -1,11 +1,12 @@
 """Toshiba AC example without HA."""
 
 import argparse
-from toshiba_ac_api.toshibaapi import (ToshibaApi)
+from toshibaapi import (ToshibaApi)
+# from toshibaapi import *
 
 
 def main():
-
+    """Create example calls for toshiba ac api."""
     parser = argparse.ArgumentParser(description='Command line client for controlling a vimar webserver')
     parser.add_argument('-u', '--username', type=str, dest="username", help="Your username that you use in the toshiba app")
     parser.add_argument('-p', '--password', type=str, dest="password", help="Your password that you use in the toshiba app")
@@ -23,20 +24,31 @@ def main():
         print("Login failed")
         exit(1)
 
-    print('generated access_token: ', toshibaapi._access_token)
+    print('generated access_token: ', toshibaapi.access_token)
 
     toshibaapi.get_mapping()
-    if toshibaapi._devices:
-        for device in toshibaapi._devices:
+    if toshibaapi.devices:
+        for device in toshibaapi.devices:
             print('found device: ', device)
 
-        for device in toshibaapi._devices:
-            toshibaapi.get_device_status(device_id=device._ACId)
+        for device in toshibaapi.devices:
+            toshibaapi.get_device_status(device_id=device.ac_id)
             print('updated device: ', device)
 
         toshibaapi.get_program()
-        for device in toshibaapi._devices:
-            print('found program: ', device._ACId, ' ', device._program)
+        for device in toshibaapi.devices:
+
+            print('found program: ', device.ac_id, ' ', device.get_program())
+
+            device.get_program().switch(on=True)
+            print('found program: ', device.ac_id, ' ', device.get_program())
+
+            device.get_program().reset(week=True)
+
+            device.get_program().switch(on=False)
+            print('found program: ', device.ac_id, ' ', device.get_program())
+
+            # print('program details: ', device._program.__json__())
 
     # except BaseException as err:
     #     print("Exception: %s" % err)
