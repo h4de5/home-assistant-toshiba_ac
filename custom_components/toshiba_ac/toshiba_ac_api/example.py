@@ -1,54 +1,60 @@
 """Toshiba AC example without HA."""
 
 import argparse
-from toshibaapi import (ToshibaApi)
-# from toshibaapi import *
+import datetime
+from toshibaapi import ToshibaACApi
+from toshibaproject import ToshibaACProject
 
 
 def main():
     """Create example calls for toshiba ac api."""
-    parser = argparse.ArgumentParser(description='Command line client for controlling a vimar webserver')
-    parser.add_argument('-u', '--username', type=str, dest="username", help="Your username that you use in the toshiba app")
-    parser.add_argument('-p', '--password', type=str, dest="password", help="Your password that you use in the toshiba app")
+    parser = argparse.ArgumentParser(description="Command line client for controlling a vimar webserver")
+    parser.add_argument("-u", "--username", type=str, dest="username", help="Your username that you use in the toshiba app")
+    parser.add_argument("-p", "--password", type=str, dest="password", help="Your password that you use in the toshiba app")
     args = parser.parse_args()
 
     if args.username is None or args.password is None:
-        print('Please provice --username and --password')
+        print("Please provice --username and --password")
         exit(1)
 
     # try:
-    toshibaapi = ToshibaApi(args.username, args.password)
+    toshibaapi = ToshibaACApi(args.username, args.password)
 
     valid_login = toshibaapi.check_login()
     if not valid_login:
         print("Login failed")
         exit(1)
 
-    print('generated access_token: ', toshibaapi.access_token)
+    print("generated access_token: ", toshibaapi.access_token)
 
-    toshibaapi.get_mapping()
-    if toshibaapi.devices:
-        for device in toshibaapi.devices:
-            print('found device: ', device)
+    project = ToshibaACProject(toshibaapi)
 
-        for device in toshibaapi.devices:
-            toshibaapi.get_device_status(device_id=device.ac_id)
-            print('updated device: ', device)
+    project.read_mapping()
 
-        toshibaapi.get_program()
-        for device in toshibaapi.devices:
+    if project.devices:
+        for group in project.groups:
+            print("found group: ", group)
 
-            print('found program: ', device.ac_id, ' ', device.get_program())
+        for device in project.devices:
+            print("found device: ", device)
 
-            device.get_program().switch(on=True)
-            print('found program: ', device.ac_id, ' ', device.get_program())
+        # for device in project.devices:
+        #     toshibaapi.get_device_status(device_id=device.ac_id)
+        #     print("updated device: ", device)
 
-            device.get_program().reset(week=True)
+        project.read_program()
+        for device in project.devices:
+            print("found program: ", device.ac_id, " ", device.get_program())
 
-            device.get_program().switch(on=False)
-            print('found program: ', device.ac_id, ' ', device.get_program())
+        for device in project.devices:
 
-            # print('program details: ', device._program.__json__())
+            # set all AC to start in one minute
+            project.set_program(device_id=device.ac_id, On=True, when=(datetime.datetime.now() + datetime.timedelta(minutes=1)), reset=True)
+            print("found program: ", device.ac_id, " ", device.get_program())
+
+            # set all AC to stop in 5 minutes
+            project.set_program(device_id=device.ac_id, On=False, when=(datetime.datetime.now() + datetime.timedelta(minutes=5)))
+            print("found program: ", device.ac_id, " ", device.get_program())
 
     # except BaseException as err:
     #     print("Exception: %s" % err)
