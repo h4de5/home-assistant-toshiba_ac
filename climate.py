@@ -194,12 +194,12 @@ class ToshibaClimate(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-        return self._device.ac_temperature.value
+        return self._device.ac_temperature.name
 
     @property
     def target_temperature_step(self):
         """Return the supported step of target temperature."""
-        return 0.1
+        return 1
 
     @property
     def temperature_unit(self):
@@ -324,7 +324,7 @@ class ToshibaClimate(ClimateEntity):
         if set_temperature < 10:
             set_temperature = 10
 
-        await self._device.set_ac_temperature(set_temperature)
+        await self._device.set_ac_temperature(int(set_temperature))
 
 
 # end class ToshibaClimate
