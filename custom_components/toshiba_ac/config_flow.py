@@ -13,31 +13,18 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
+from .toshiba_ac_control.toshiba_ac.device_manager import ToshibaAcDeviceManager
+
 _LOGGER = logging.getLogger(__name__)
 
 # TODO adjust the data schema to the data that you need
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required("host"): str,
+        # vol.Required("host"): str,
         vol.Required("username"): str,
         vol.Required("password"): str,
     }
 )
-
-
-class PlaceholderHub:
-    """Placeholder class to make tests pass.
-
-    TODO Remove this placeholder class and replace with things from your PyPI package.
-    """
-
-    def __init__(self, host: str) -> None:
-        """Initialize."""
-        self.host = host
-
-    async def authenticate(self, username: str, password: str) -> bool:
-        """Test if we can authenticate with the host."""
-        return True
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
@@ -53,9 +40,14 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     #     your_validate_func, data["username"], data["password"]
     # )
 
-    hub = PlaceholderHub(data["host"])
+    # hub = PlaceholderHub(data["host"])
 
-    if not await hub.authenticate(data["username"], data["password"]):
+    # if not await hub.authenticate(data["username"], data["password"]):
+    #     raise InvalidAuth
+
+    device_manager = ToshibaAcDeviceManager(data["username"], data["password"])
+
+    if not await device_manager.connect():
         raise InvalidAuth
 
     # If you cannot connect:
@@ -64,7 +56,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # InvalidAuth
 
     # Return info that you want to store in the config entry.
-    return {"title": "Name of the device"}
+    return {"title": data["username"]}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -72,14 +64,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    # Pick one of the available connection classes in homeassistant/config_entries.py
+    # This tells HA if it should be asking for updates, or it'll be notified of updates
+    # automatically. This example uses PUSH, as the dummy hub will notify HA of
+    # changes.
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle the initial step."""
         if user_input is None:
-            return self.async_show_form(
-                step_id="user", data_schema=STEP_USER_DATA_SCHEMA
-            )
+            return self.async_show_form(step_id="user", data_schema=STEP_USER_DATA_SCHEMA)
 
         errors = {}
 
@@ -95,9 +89,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             return self.async_create_entry(title=info["title"], data=user_input)
 
-        return self.async_show_form(
-            step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
-        )
+        return self.async_show_form(step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors)
 
 
 class CannotConnect(HomeAssistantError):

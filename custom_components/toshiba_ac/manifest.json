@@ -3,13 +3,12 @@
   "name": "Toshiba AC",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/toshiba_ac",
-  "requirements": [],
+  "requirements": ["azure-iot-device", "httpx"],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},
   "dependencies": [],
-  "codeowners": [
-    "@h4de5"
-  ],
+  "codeowners": ["@h4de5"],
+  "version": "2021.8.1",
   "iot_class": "cloud_polling"
 }

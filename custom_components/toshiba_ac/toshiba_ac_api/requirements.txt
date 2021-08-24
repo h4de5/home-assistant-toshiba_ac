@@ -1,3 +1,5 @@
 datetime
 typing
 requests
+azure-iot-device
+httpx
