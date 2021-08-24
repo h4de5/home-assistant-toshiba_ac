@@ -21,7 +21,7 @@ from homeassistant.components.climate.const import (
     FAN_AUTO,
     FAN_DIFFUSE,
     FAN_ON,
-    # FAN_OFF,
+    FAN_OFF,
     FAN_LOW,
     FAN_MEDIUM,
     FAN_HIGH,
@@ -77,7 +77,7 @@ class ToshibaClimate(ClimateEntity):
     """Provides a Toshiba climates."""
 
     # Our dummy class is PUSH, so we tell HA that it should not be polled
-    should_poll = True
+    should_poll = False
     # The supported features of a cover are done using a bitmask. Using the constants
     # imported above, we can tell HA the features that are supported by this entity.
     # If the supported features were dynamic (ie: different depending on the external
@@ -275,34 +275,43 @@ class ToshibaClimate(ClimateEntity):
         """Set new target fan mode."""
         _LOGGER.info("Toshiba Climate setting fan_mode: %s", fan_mode)
 
-        if fan_mode == FAN_LOW:
-            self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.LOW)
-        elif fan_mode == FAN_MEDIUM:
-            self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.MEDIUM)
-        elif fan_mode == FAN_HIGH:
-            self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.HIGH)
-        elif fan_mode == FAN_AUTO:
-            self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.AUTO)
-        elif fan_mode == FAN_DIFFUSE:
-            self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.QUIET)
+        if fan_mode == FAN_OFF:
+            await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.OFF)
+        else:
+            if not self.is_on:
+                await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.ON)
+
+            if fan_mode == FAN_LOW:
+                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.LOW)
+            elif fan_mode == FAN_MEDIUM:
+                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.MEDIUM)
+            elif fan_mode == FAN_HIGH:
+                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.HIGH)
+            elif fan_mode == FAN_AUTO:
+                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.AUTO)
+            elif fan_mode == FAN_DIFFUSE:
+                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.QUIET)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         _LOGGER.info("Toshiba Climate setting hvac_mode: %s", hvac_mode)
 
         if hvac_mode == HVAC_MODE_OFF:
-            self._device.set_ac_status(ToshibaAcFcuState.AcStatus.OFF)
+            await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.OFF)
 
-        elif hvac_mode == HVAC_MODE_AUTO:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.AUTO)
-        elif hvac_mode == HVAC_MODE_COOL:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.COOL)
-        elif hvac_mode == HVAC_MODE_HEAT:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.HEAT)
-        elif hvac_mode == HVAC_MODE_DRY:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.DRY)
-        elif hvac_mode == HVAC_MODE_FAN_ONLY:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.FAN)
+        else:
+            if not self.is_on:
+                await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.ON)
+            if hvac_mode == HVAC_MODE_AUTO:
+                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.AUTO)
+            elif hvac_mode == HVAC_MODE_COOL:
+                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.COOL)
+            elif hvac_mode == HVAC_MODE_HEAT:
+                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.HEAT)
+            elif hvac_mode == HVAC_MODE_DRY:
+                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.DRY)
+            elif hvac_mode == HVAC_MODE_FAN_ONLY:
+                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.FAN)
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -315,7 +324,7 @@ class ToshibaClimate(ClimateEntity):
         if set_temperature < 10:
             set_temperature = 10
 
-        self._device.set_ac_temperature(set_temperature)
+        await self._device.set_ac_temperature(set_temperature)
 
 
 # end class ToshibaClimate
