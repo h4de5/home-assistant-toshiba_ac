@@ -27,6 +27,7 @@ from homeassistant.components.climate.const import (
     FAN_HIGH,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+from homeassistant.util.temperature import convert as convert_temperature
 
 # , TEMP_FAHRENHEIT
 # from voluptuous.validators import Switch
@@ -194,7 +195,9 @@ class ToshibaClimate(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-        return self._device.ac_temperature.name
+
+        _LOGGER.info("Toshiba Climate debugging temperature: %s", self._device.ac_temperature)
+        return self._device.ac_temperature.value
 
     @property
     def target_temperature_step(self):
@@ -325,6 +328,16 @@ class ToshibaClimate(ClimateEntity):
             set_temperature = 17
 
         await self._device.set_ac_temperature(int(set_temperature))
+
+    @property
+    def min_temp(self) -> float:
+        """Return the minimum temperature."""
+        return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
+
+    @property
+    def max_temp(self) -> float:
+        """Return the maximum temperature."""
+        return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
 
 # end class ToshibaClimate
