@@ -1,3 +1,3 @@
-[submodule "custom_components/toshiba_ac/toshiba_ac_control"]
-	path = custom_components/toshiba_ac/toshiba_ac_control
+[submodule "toshiba_ac_control"]
+	path = toshiba_ac_control
 	url = https://github.com/KaSroka/Toshiba-AC-control
