@@ -212,15 +212,15 @@ class ToshibaClimate(ClimateEntity):
         if not self.is_on:
             return HVAC_MODE_OFF
 
-        if self._device.ac_mode == ToshibaAcFcuState.AcStatus.AUTO:
+        if self._device.ac_mode == ToshibaAcFcuState.AcMode.AUTO:
             return HVAC_MODE_AUTO
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.COOL:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.COOL:
             return HVAC_MODE_COOL
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.HEAT:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.HEAT:
             return HVAC_MODE_HEAT
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.DRY:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.DRY:
             return HVAC_MODE_DRY
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.FAN:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.FAN:
             return HVAC_MODE_FAN_ONLY
         else:
             return HVAC_MODE_OFF
@@ -237,15 +237,15 @@ class ToshibaClimate(ClimateEntity):
         if not self.is_on:
             return CURRENT_HVAC_OFF
 
-        if self._device.ac_mode == ToshibaAcFcuState.AcStatus.AUTO:
+        if self._device.ac_mode == ToshibaAcFcuState.AcMode.AUTO:
             return CURRENT_HVAC_COOL  # CURRENT_HVAC_IDLE
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.COOL:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.COOL:
             return CURRENT_HVAC_COOL
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.HEAT:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.HEAT:
             return CURRENT_HVAC_HEAT
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.DRY:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.DRY:
             return CURRENT_HVAC_DRY
-        elif self._device.ac_mode == ToshibaAcFcuState.AcStatus.FAN:
+        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.FAN:
             return CURRENT_HVAC_FAN
         else:
             return CURRENT_HVAC_OFF
@@ -294,15 +294,15 @@ class ToshibaClimate(ClimateEntity):
             self._device.set_ac_status(ToshibaAcFcuState.AcStatus.OFF)
 
         elif hvac_mode == HVAC_MODE_AUTO:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcStatus.AUTO)
+            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.AUTO)
         elif hvac_mode == HVAC_MODE_COOL:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcStatus.COOL)
+            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.COOL)
         elif hvac_mode == HVAC_MODE_HEAT:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcStatus.HEAT)
+            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.HEAT)
         elif hvac_mode == HVAC_MODE_DRY:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcStatus.DRY)
+            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.DRY)
         elif hvac_mode == HVAC_MODE_FAN_ONLY:
-            self._device.set_ac_mode(ToshibaAcFcuState.AcStatus.FAN)
+            self._device.set_ac_mode(ToshibaAcFcuState.AcMode.FAN)
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
