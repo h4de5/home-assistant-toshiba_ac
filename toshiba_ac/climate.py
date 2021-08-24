@@ -106,7 +106,7 @@ class ToshibaClimate(ClimateEntity):
         # The call back registration is done once this entity is registered with HA
         # (rather than in the __init__)
         # self._device.register_callback(self.async_write_ha_state)
-        self._device.on_state_changed = self.async_write_ha_state
+        self._device.on_state_changed = lambda _: self.schedule_update_ha_state()
 
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
