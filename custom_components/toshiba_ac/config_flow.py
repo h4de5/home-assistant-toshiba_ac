@@ -48,7 +48,11 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     device_manager = ToshibaAcDeviceManager(data["username"], data["password"])
 
-    if not await device_manager.connect():
+    try:
+        await device_manager.connect()
+
+    except Exception:
+        _LOGGER.debug("connect failed - for: " + data["username"] + "-" + data["password"])
         raise InvalidAuth
 
     # If you cannot connect:

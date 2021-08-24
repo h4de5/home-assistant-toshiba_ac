@@ -30,8 +30,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     device_manager = ToshibaAcDeviceManager(entry.data["username"], entry.data["password"])
 
-    if not await device_manager.connect():
+    try:
+        await device_manager.connect()
+
+    except Exception:
         return False
+
+    # if not await device_manager.connect():
+    #     return False
 
     hass.data[DOMAIN][entry.entry_id] = device_manager
 
