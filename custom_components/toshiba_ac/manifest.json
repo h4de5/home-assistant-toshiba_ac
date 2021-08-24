@@ -2,7 +2,8 @@
   "domain": "toshiba_ac",
   "name": "Toshiba AC",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/toshiba_ac",
+  "documentation": "https://github.com/h4de5/home-assistant-toshiba_ac",
+  "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
   "requirements": [
     "azure-iot-device",
     "httpx",

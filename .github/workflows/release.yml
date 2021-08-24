@@ -1,0 +1,110 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Release
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [master]
+  # pull_request:
+  #   branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      #       # Runs a single command using the runners shell
+      #       - name: Run a one-line script
+      #         run: echo Hello, world!
+
+      - name: Read Properties
+        id: read_property
+        uses: ashley-taylor/read-json-property-action@v1.0
+        with:
+          path: custom_components/toshiba_ac/manifest.json
+          property: version
+
+      - name: Get Latest Release
+        id: get_latest_release
+        uses: joutvhu/get-release@v1
+        with:
+          latest: true
+          # Tag name start with `v`
+          # attern: '^v.*'
+          # Including pre-release
+          prerelease: true
+          # Fail when no release was found
+          # throwing: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check version
+        run: |
+          echo Uploaded version: ${{ steps.read_property.outputs.value }}
+          echo Latest version: ${{ steps.get_latest_release.outputs.name }}
+
+      - name: Skip release
+        if: ${{ steps.read_property.outputs.value == steps.get_latest_release.outputs.name }}
+        run: |
+          echo Skipping release because version did not change!
+
+      - name: Create zip asset
+        if: ${{ steps.read_property.outputs.value != steps.get_latest_release.outputs.name }}
+        uses: TheDoctor0/zip-release@0.4.2
+        with:
+          # Filename for archive
+          filename: toshiba_ac-${{ steps.read_property.outputs.value }}.zip
+          # Base path for archive files
+          # path: # optional, default is .
+          # Working directory before zipping
+          directory: custom_components/
+          # List of excluded files / directories
+          # exclusions:
+          # Tool to use for archiving
+          type: zip
+
+      - name: Create release
+        if: ${{ steps.read_property.outputs.value != steps.get_latest_release.outputs.name }}
+        uses: meeDamian/github-release@v2.0.3
+        with:
+          # Github API token to be used. Quite unavoidable, I'm afraid.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # A tag for the release. Required UNLESS action is run on tag push (meaning: '$GITHUB_REF' contains 'ref/tag/<TAG>').
+          tag: ${{ steps.read_property.outputs.value }}
+          # Unnecessary, if the tag provided is a git tag. If it isn't, release will be created off 'master'.
+          # commitish: # optional
+          # Name the release, the more creative, the better.
+          name: ${{ steps.read_property.outputs.value }}
+          # Longer description of the release, ex. changelog, or info about contributors.
+          body: ${{ github.event.head_commit.message }}
+          # Keep the Release as draft and don't publish it. With no 'files', the default is 'false'. With 'files' default is to 'un-draft' the release only after and if all assets upload successfully. Keep it private with explicit 'false'.
+          # draft: # optional
+          # Marks Release as a pre-Release.
+          # prerelease: # optional
+          # A whitespace-separated(!) list of files to be uploaded. It's impossible to pass a list here, so make sure filenames don't contain spaces nor colons in their names/paths.  Optionally custom asset name can be specified by pre-pending it to the name, ex: 'asset-name.tgz:./folder-to-be-uploaded/'.
+          files: custom_components/toshiba_ac-${{ steps.read_property.outputs.value }}.zip
+          # Default is 'true', which compresses both files, and folders. 'false' compresses nothing, but will error out on folders, as they can't be uploaded. 'folders' applies compression to folders only.
+          gzip: false
+          # Set to 'true' to allow for release overriding.
+          # allow_override: # optional
+#       - name: Upload Release Asset
+#         uses: actions/upload-release-asset@v1
+#         with:
+#           upload_url: ${{ steps.get_current_release.outputs.upload_url }}
+#           asset_path: ./my-artifact.zip
+#           asset_name: my-artifact.zip
+#           asset_content_type: application/zip
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

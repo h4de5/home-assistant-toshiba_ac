@@ -1,0 +1,8 @@
+{
+  "name": "Toshiba AC",
+  "content_in_root": false,
+  "render_readme": true,
+  "domains": ["climate"],
+  "homeassistant": "0.99.9",
+  "iot_class": ["Cloud Polling"]
+}
