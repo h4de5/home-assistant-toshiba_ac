@@ -3,7 +3,11 @@
   "name": "Toshiba AC",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/toshiba_ac",
-  "requirements": ["azure-iot-device", "httpx"],
+  "requirements": [
+    "azure-iot-device",
+    "httpx",
+    "toshiba_ac @ git+https://github.com/KaSroka/Toshiba-AC-control.git#egg=toshiba_ac"
+  ],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},

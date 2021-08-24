@@ -13,7 +13,8 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
 
-from .toshiba_ac_control.toshiba_ac.device_manager import ToshibaAcDeviceManager
+# from .toshiba_ac_control.toshiba_ac.device_manager import ToshibaAcDeviceManager
+from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 _LOGGER = logging.getLogger(__name__)
 

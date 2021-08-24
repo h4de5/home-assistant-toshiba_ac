@@ -7,7 +7,8 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN
 
 # from .toshiba_ac_control import toshiba_ac
-from .toshiba_ac_control.toshiba_ac.device_manager import ToshibaAcDeviceManager
+# from .toshiba_ac_control.toshiba_ac.device_manager import ToshibaAcDeviceManager
+from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 PLATFORMS = ["climate"]
 

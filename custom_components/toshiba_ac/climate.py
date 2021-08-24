@@ -31,7 +31,9 @@ from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 # , TEMP_FAHRENHEIT
 # from voluptuous.validators import Switch
 from .const import DOMAIN
-from .toshiba_ac_control.toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
+
+# from .toshiba_ac_control.toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
+from toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
 
 try:
     from homeassistant.components.climate import ClimateEntity
