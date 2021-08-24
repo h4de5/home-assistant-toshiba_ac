@@ -177,7 +177,7 @@ class ToshibaClimate(ClimateEntity):
     @property
     def is_on(self):
         """Return True if the device is on or completely off."""
-        return (True, False)[self._device.ac_status == ToshibaAcFcuState.AcStatus.ON]
+        return (False, True)[self._device.ac_status == ToshibaAcFcuState.AcStatus.ON]
 
     # MISSING !
     # @property
@@ -194,7 +194,7 @@ class ToshibaClimate(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-        return float(self._device.ac_temperature)
+        return self._device.ac_temperature.value
 
     @property
     def target_temperature_step(self):
