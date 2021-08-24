@@ -319,10 +319,10 @@ class ToshibaClimate(ClimateEntity):
         if set_temperature is None:
             return
         # upper limit for target temp
-        if set_temperature > 40:
-            set_temperature = 40
-        if set_temperature < 10:
-            set_temperature = 10
+        if set_temperature > 30:
+            set_temperature = 30
+        if set_temperature < 17:
+            set_temperature = 17
 
         await self._device.set_ac_temperature(int(set_temperature))
 
