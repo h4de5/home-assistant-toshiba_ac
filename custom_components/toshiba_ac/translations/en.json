@@ -1,22 +1,80 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Device is already configured"
-        },
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "invalid_auth": "Invalid authentication",
-            "unknown": "Unexpected error"
-        },
-        "step": {
-            "user": {
-                "data": {
-                    "host": "Host",
-                    "password": "Password",
-                    "username": "Username"
-                }
-            }
+  "component": {
+    "climate": {
+      "state": {
+        "_": {
+          "auto": "Auto",
+          "quiet": "Silent",
+          "low": "Low",
+          "medium_low": "Medium-Low",
+          "medium": "Medium",
+          "medium_high": "Medium-High",
+          "high": "High",
+
+          "vertical": "Vertical",
+          "horizontal": "Horizontal",
+          "vertical_horizontal": "Vertical and Horizontal",
+          "fixed1": "Fixed Mode 1",
+          "fixed2": "Fixed Mode 2",
+          "fixed3": "Fixed Mode 3",
+          "fixed4": "Fixed Mode 4",
+          "fixed5": "Fixed Mode 5",
+          "off": "Off",
+
+          "low_power": "Low Power",
+          "mid_power": "Mid Power",
+          "high_power": "High Power"
         }
+      }
+    }
+  },
+  "state_attributes": {
+    "climate": {
+      "fan_mode": {
+        "auto": "Auto",
+        "quiet": "Silent",
+        "low": "Low",
+        "medium_low": "Medium-Low",
+        "medium": "Medium",
+        "medium_high": "Medium-High",
+        "high": "High"
+      },
+      "swing_mode": {
+        "vertical": "Vertical",
+        "horizontal": "Horizontal",
+        "vertical_horizontal": "Vertical and Horizontal",
+        "fixed1": "Fixed Mode 1",
+        "fixed2": "Fixed Mode 2",
+        "fixed3": "Fixed Mode 3",
+        "fixed4": "Fixed Mode 4",
+        "fixed5": "Fixed Mode 5",
+        "off": "Off"
+      },
+      "preset_mode": {
+        "low_power": "Low Power",
+        "mid_power": "Mid Power",
+        "high_power": "High Power"
+      }
+    }
+  },
+  "config": {
+    "abort": {
+      "already_configured": "Device is already configured"
     },
-    "title": "Toshiba AC"
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "host": "Host",
+          "password": "Password",
+          "username": "Username"
+        }
+      }
+    }
+  },
+  "title": "Toshiba AC"
 }

@@ -5,8 +5,6 @@
   "documentation": "https://github.com/h4de5/home-assistant-toshiba_ac",
   "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
   "requirements": [
-    "azure-iot-device>=2.5,<3",
-    "httpx>=0.17,<1",
     "toshiba_ac @ git+https://github.com/KaSroka/Toshiba-AC-control.git#egg=toshiba_ac"
   ],
   "ssdp": [],
@@ -14,6 +12,6 @@
   "homekit": {},
   "dependencies": [],
   "codeowners": ["@h4de5"],
-  "version": "2021.8.2",
+  "version": "2021.8.3",
   "iot_class": "cloud_push"
 }
