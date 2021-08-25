@@ -178,13 +178,12 @@ class ToshibaClimate(ClimateEntity):
     @property
     def is_on(self):
         """Return True if the device is on or completely off."""
-        return (False, True)[self._device.ac_status == ToshibaAcFcuState.AcStatus.ON]
+        return self._device.ac_status == ToshibaAcFcuState.AcStatus.ON and self._device.ac_self_cleaning == ToshibaAcFcuState.AcSelfCleaning.OFF
 
-    # MISSING !
-    # @property
-    # def current_temperature(self):
-    #     """Return current temperature."""
-    #     return float(self._device.ac_temperature)
+    @property
+    def current_temperature(self):
+        """Return current temperature."""
+        return self._device.ac_indoor_temperature
 
     # @property
     # def current_humidity(self):
@@ -195,9 +194,7 @@ class ToshibaClimate(ClimateEntity):
     @property
     def target_temperature(self):
         """Return the temperature we try to reach."""
-
-        _LOGGER.info("Toshiba Climate debugging temperature: %s", self._device.ac_temperature)
-        return self._device.ac_temperature.value
+        return self._device.ac_temperature
 
     @property
     def target_temperature_step(self):
@@ -321,22 +318,36 @@ class ToshibaClimate(ClimateEntity):
         set_temperature = kwargs.get(ATTR_TEMPERATURE)
         if set_temperature is None:
             return
-        # upper limit for target temp
-        if set_temperature > 30:
-            set_temperature = 30
-        if set_temperature < 17:
-            set_temperature = 17
 
-        await self._device.set_ac_temperature(int(set_temperature))
+        if self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+            # upper limit for target temp
+            if set_temperature > 15:
+                set_temperature = 15
+            # lower limit for target temp
+            elif set_temperature < 5:
+                set_temperature = 5
+        else:
+            # upper limit for target temp
+            if set_temperature > 30:
+                set_temperature = 30
+            # lower limit for target temp
+            elif set_temperature < 17:
+                set_temperature = 17
+
+        await self._device.set_ac_temperature(set_temperature)
 
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
+        if self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+            return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
+        if self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+            return convert_temperature(15, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
 
