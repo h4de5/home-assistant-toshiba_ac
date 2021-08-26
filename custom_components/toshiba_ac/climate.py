@@ -125,7 +125,7 @@ class ToshibaClimate(ClimateEntity):
     @property
     def unique_id(self):
         """Return Unique ID string."""
-        return f"{self._device.device_id}_climate"
+        return f"{self._device.ac_unique_id}_climate"
 
     # Information about the devices that is partially visible in the UI.
     # The most critical thing here is to give this entity a name so it is displayed
@@ -150,11 +150,11 @@ class ToshibaClimate(ClimateEntity):
     def device_info(self):
         """Information about this entity/device."""
         return {
-            "identifiers": {(DOMAIN, self._device.device_id)},
+            "identifiers": {(DOMAIN, self._device.ac_unique_id)},
             # If desired, the name for the device could be different to the entity
             "name": self.name,
             "account": self._device.ac_id,
-            "unique_id": self._device.ac_unique_id,
+            "device_id": self._device.device_id,
             # "sw_version": self._roller.firmware_version,
             # "model": self._roller.model,
             "manufacturer": "Toshiba",
