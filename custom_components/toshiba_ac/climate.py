@@ -217,9 +217,9 @@ class ToshibaClimate(ClimateEntity):
         if not self.is_on:
             return None
 
-        if self._device.ac_mode == ToshibaAcFcuState.AcPowerSelection.POWER_50:
+        if self._device.ac_power_selection == ToshibaAcFcuState.AcPowerSelection.POWER_50:
             return "low_power"
-        elif self._device.ac_mode == ToshibaAcFcuState.AcPowerSelection.POWER_75:
+        elif self._device.ac_power_selection == ToshibaAcFcuState.AcPowerSelection.POWER_75:
             return "mid_power"
         else:
             return "high_power"
@@ -311,7 +311,8 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_SWING_MODE.
         """
-        return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
+        return ["vertical", "off"]
+        # return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
 
     @property
     def swing_mode(self) -> Optional[str]:
@@ -319,21 +320,21 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_SWING_MODE.
         """
-        if self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL:
-            return "auto"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.SWING_HORIZONTAL:
-            return "low"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL_AND_HORIZONTAL:
-            return "medium_low"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.FIXED_1:
+        if self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL:
+            return "vertical"
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_HORIZONTAL:
+            return "horizontal"
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL_AND_HORIZONTAL:
+            return "vertical_horizontal"
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_1:
             return "fixed1"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.FIXED_2:
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_2:
             return "fixed2"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.FIXED_3:
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_3:
             return "fixed3"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.FIXED_4:
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_4:
             return "fixed4"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcSwingMode.FIXED_5:
+        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_5:
             return "fixed5"
         else:
             return "off"
@@ -429,11 +430,11 @@ class ToshibaClimate(ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         if preset_mode == "low_power":
-            await self._device.ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_50)
+            await self._device.set_ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_50)
         elif preset_mode == "mid_power":
-            await self._device.ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_75)
+            await self._device.set_ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_75)
         elif preset_mode == "high_power":
-            await self._device.ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_100)
+            await self._device.set_ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_100)
 
     @property
     def min_temp(self) -> float:
