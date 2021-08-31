@@ -6,8 +6,6 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-# from .toshiba_ac_control import toshiba_ac
-# from .toshiba_ac_control.toshiba_ac.device_manager import ToshibaAcDeviceManager
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 PLATFORMS = ["climate"]
@@ -25,19 +23,18 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Toshiba AC from a config entry."""
-    # TODO Store an API object for your platforms to access
-    # hass.data[DOMAIN][entry.entry_id] = MyApi(...)
 
-    device_manager = ToshibaAcDeviceManager(entry.data["username"], entry.data["password"])
+    device_manager = ToshibaAcDeviceManager(
+        entry.data["username"],
+        entry.data["password"],
+        entry.data["device_id"],
+        entry.data["sas_token"]
+    )
 
     try:
         await device_manager.connect()
-
     except Exception:
         return False
-
-    # if not await device_manager.connect():
-    #     return False
 
     hass.data[DOMAIN][entry.entry_id] = device_manager
 
