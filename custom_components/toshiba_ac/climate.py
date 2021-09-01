@@ -71,11 +71,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         async_add_devices(new_devices)
 
 
-# async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-#     """Set up the Toshiba Climate platform."""
-#     toshiba_setup_platform(ToshibaClimate, hass, async_add_entities, discovery_info)
-
-
 class ToshibaClimate(ClimateEntity):
     """Provides a Toshiba climates."""
 
@@ -91,9 +86,9 @@ class ToshibaClimate(ClimateEntity):
 
     # _platform = "climate"
 
-    def __init__(self, toshiba_climate: ToshibaAcDevice):
+    def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the climate."""
-        self._device = toshiba_climate
+        self._device = toshiba_device
 
         # ToshibaEntity.__init__(self, device_id, toshibaconnection, toshibaproject, coordinator)
         # self.entity_id = "climate." + self._name.lower() + "_" + self._device_id
