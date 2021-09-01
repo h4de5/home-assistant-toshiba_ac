@@ -33,7 +33,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     """
     device_id = f"{random.getrandbits(64):016x}"
 
-    device_manager = ToshibaAcDeviceManager(data["username"], data["password"], device_id)
+    device_manager = ToshibaAcDeviceManager(hass.loop, data["username"], data["password"], device_id)
 
     try:
         sas_token = await device_manager.connect()
@@ -42,6 +42,8 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         raise InvalidAuth
     except ToshibaAcHttpApiError:
         raise CannotConnect
+    finally:
+        device_manager.shutdown()
 
     return {"username": data["username"], "password": data["password"], "device_id": device_id, "sas_token": sas_token}
 
