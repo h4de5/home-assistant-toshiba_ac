@@ -1,9 +1,12 @@
 """Platform for sensor integration."""
 
 import logging
-
+from datetime import datetime
 from homeassistant.const import DEVICE_CLASS_ENERGY, ENERGY_WATT_HOUR
-from homeassistant.helpers.entity import Entity
+from homeassistant.components.sensor import (
+    STATE_CLASS_MEASUREMENT,
+    SensorEntity,
+)
 
 from toshiba_ac.device import ToshibaAcDevice, ToshibaAcDeviceEnergyConsumption
 
@@ -42,7 +45,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         async_add_devices(new_devices)
 
 
-class ToshibaSensor(Entity):
+class ToshibaSensor(SensorEntity):
     """Provides a Toshiba Sensors."""
 
     # Our dummy class is PUSH, so we tell HA that it should not be polled
@@ -64,6 +67,7 @@ class ToshibaSensor(Entity):
     # default entity properties
 
     async def state_changed(self, dev):
+        """Call if we need to change the ha state."""
         await self.async_write_ha_state()
 
     async def async_added_to_hass(self):
@@ -152,28 +156,46 @@ class ToshibaSensor(Entity):
         return DEVICE_CLASS_ENERGY
 
     @property
+    def state_class(self) -> str:
+        """Return the state class of this entity."""
+        return STATE_CLASS_MEASUREMENT
+
+    @property
     def state(self) -> float:
         """Return the value of the sensor."""
         self._ac_energy_consumption = self._device.ac_energy_consumption
 
-        _LOGGER.debug("state %s", self._ac_energy_consumption)
+        _LOGGER.debug("is it set in state:? %s", self._ac_energy_consumption)
 
         if self._ac_energy_consumption:
             return self._ac_energy_consumption.energy_wh
         else:
-            return None
+            return 0
 
     @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
+    def last_reset(self) -> datetime:
+        """Return the time when the sensor was last reset, if any."""
         self._ac_energy_consumption = self._device.ac_energy_consumption
 
-        _LOGGER.debug("attributes %s", self._ac_energy_consumption)
+        _LOGGER.debug("is it set in last_reset:? %s", self._ac_energy_consumption)
 
         if self._ac_energy_consumption:
-            return {"last_reset": self._ac_energy_consumption.since}
+            return self._ac_energy_consumption.since
         else:
-            return None
+            # fallback to today for now
+            return datetime.utcnow().date()
+
+    # @property
+    # def device_state_attributes(self):
+    #     """Return the state attributes."""
+    #     self._ac_energy_consumption = self._device.ac_energy_consumption
+
+    #     _LOGGER.debug("is it set in attributes:? %s", self._ac_energy_consumption)
+
+    #     if self._ac_energy_consumption:
+    #         return {"last_reset": self._ac_energy_consumption.since}
+    #     else:
+    #         return {"last_reset": datetime.utcnow().date()}
 
 
 # end class ToshibaSensor
