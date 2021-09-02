@@ -96,7 +96,7 @@ class ToshibaClimate(ClimateEntity):
     # default entity properties
 
     async def state_changed(self, dev):
-        await self.async_write_ha_state()
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self):
         """Run when this Entity has been added to HA."""
