@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 from homeassistant.const import DEVICE_CLASS_ENERGY, ENERGY_WATT_HOUR
 from homeassistant.components.sensor import (
-    STATE_CLASS_MEASUREMENT,
+    STATE_CLASS_TOTAL_INCREASING,
     SensorEntity,
 )
 
@@ -60,15 +60,12 @@ class ToshibaSensor(SensorEntity):
         """Initialize the sensor."""
         self._device = toshiba_device
 
-        self._ac_energy_consumption = self._device.ac_energy_consumption
-        # ToshibaEntity.__init__(self, device_id, toshibaconnection, toshibaproject, coordinator)
-        # self.entity_id = "sensor." + self._name.lower() + "_" + self._device_id
-
     # default entity properties
 
     async def state_changed(self, dev):
         """Call if we need to change the ha state."""
-        await self.async_write_ha_state()
+        self._ac_energy_consumption = self._device.ac_energy_consumption
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self):
         """Run when this Entity has been added to HA."""
@@ -158,32 +155,18 @@ class ToshibaSensor(SensorEntity):
     @property
     def state_class(self) -> str:
         """Return the state class of this entity."""
-        return STATE_CLASS_MEASUREMENT
+        return STATE_CLASS_TOTAL_INCREASING
 
     @property
     def state(self) -> float:
         """Return the value of the sensor."""
-        self._ac_energy_consumption = self._device.ac_energy_consumption
-
         _LOGGER.debug("is it set in state:? %s", self._ac_energy_consumption)
 
         if self._ac_energy_consumption:
             return self._ac_energy_consumption.energy_wh
         else:
-            return 0
-
-    @property
-    def last_reset(self) -> datetime:
-        """Return the time when the sensor was last reset, if any."""
-        self._ac_energy_consumption = self._device.ac_energy_consumption
-
-        _LOGGER.debug("is it set in last_reset:? %s", self._ac_energy_consumption)
-
-        if self._ac_energy_consumption:
-            return self._ac_energy_consumption.since
-        else:
-            # fallback to today for now
-            return datetime.utcnow().date()
+            # We have to return None so HA won't see this as new cycle
+            return None
 
     # @property
     # def device_state_attributes(self):
