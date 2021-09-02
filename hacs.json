@@ -3,6 +3,6 @@
   "content_in_root": false,
   "render_readme": true,
   "domains": ["climate"],
-  "homeassistant": "0.99.9",
+  "homeassistant": "2021.8.0",
   "iot_class": ["Cloud Push"]
 }

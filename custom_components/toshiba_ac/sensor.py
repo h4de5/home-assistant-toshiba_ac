@@ -36,7 +36,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
         sensor_entity = ToshibaSensor(device)
 
-        _LOGGER.debug("device %s", sensor_entity)
+        # _LOGGER.debug("entity %s", sensor_entity)
 
         new_devices.append(sensor_entity)
     # If we have any new devices, add them
@@ -53,8 +53,6 @@ class ToshibaSensor(SensorEntity):
 
     _device: ToshibaAcDevice = None
     _ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
-
-    # _platform = "sensor"
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
@@ -158,10 +156,16 @@ class ToshibaSensor(SensorEntity):
         return STATE_CLASS_TOTAL_INCREASING
 
     @property
+    def last_reset(self) -> datetime:
+        """Return the time when the sensor was last reset, if any."""
+        if self._ac_energy_consumption:
+            return self._ac_energy_consumption.since
+        else:
+            return None
+
+    @property
     def state(self) -> float:
         """Return the value of the sensor."""
-        _LOGGER.debug("is it set in state:? %s", self._ac_energy_consumption)
-
         if self._ac_energy_consumption:
             return self._ac_energy_consumption.energy_wh
         else:
