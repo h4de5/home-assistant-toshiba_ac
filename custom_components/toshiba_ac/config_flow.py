@@ -2,27 +2,24 @@
 from __future__ import annotations
 
 import logging
+import random
 from typing import Any
 
-import random
-
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN
-
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
-from toshiba_ac.http_api import ToshibaAcHttpApiError, ToshibaAcHttpApiAuthError
+from toshiba_ac.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
+
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        # vol.Required("host"): str,
         vol.Required("username"): str,
         vol.Required("password"): str,
     }
@@ -34,10 +31,9 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
+    device_id = f"{random.getrandbits(64):016x}"
 
-    device_id = f'{random.getrandbits(64):016x}'
-
-    device_manager = ToshibaAcDeviceManager(data["username"], data["password"], device_id)
+    device_manager = ToshibaAcDeviceManager(hass.loop, data["username"], data["password"], device_id)
 
     try:
         sas_token = await device_manager.connect()
@@ -46,13 +42,10 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         raise InvalidAuth
     except ToshibaAcHttpApiError:
         raise CannotConnect
+    finally:
+        await device_manager.shutdown()
 
-    return {
-        "username": data["username"],
-        "password": data["password"],
-        "device_id": device_id,
-        "sas_token": sas_token
-    }
+    return {"username": data["username"], "password": data["password"], "device_id": device_id, "sas_token": sas_token}
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):

@@ -71,11 +71,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         async_add_devices(new_devices)
 
 
-# async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-#     """Set up the Toshiba Climate platform."""
-#     toshiba_setup_platform(ToshibaClimate, hass, async_add_entities, discovery_info)
-
-
 class ToshibaClimate(ClimateEntity):
     """Provides a Toshiba climates."""
 
@@ -91,14 +86,17 @@ class ToshibaClimate(ClimateEntity):
 
     # _platform = "climate"
 
-    def __init__(self, toshiba_climate: ToshibaAcDevice):
+    def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the climate."""
-        self._device = toshiba_climate
+        self._device = toshiba_device
 
         # ToshibaEntity.__init__(self, device_id, toshibaconnection, toshibaproject, coordinator)
         # self.entity_id = "climate." + self._name.lower() + "_" + self._device_id
 
     # default entity properties
+
+    async def state_changed(self, dev):
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self):
         """Run when this Entity has been added to HA."""
@@ -109,13 +107,13 @@ class ToshibaClimate(ClimateEntity):
         # The call back registration is done once this entity is registered with HA
         # (rather than in the __init__)
         # self._device.register_callback(self.async_write_ha_state)
-        self._device.on_state_changed = lambda _: self.schedule_update_ha_state()
+        self._device.on_state_changed_callback.add(self.state_changed)
 
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
         # The opposite of async_added_to_hass. Remove any registered call backs here.
         # self._device.remove_callback(self.async_write_ha_state)
-        self._device.on_state_changed = None
+        self._device.on_state_changed_callback.remove(self.state_changed)
 
     # A unique_id for this entity with in this domain. This means for example if you
     # have a sensor on this cover, you must ensure the value returned is unique,

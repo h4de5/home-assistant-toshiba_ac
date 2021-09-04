@@ -8,7 +8,7 @@ from .const import DOMAIN
 
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
-PLATFORMS = ["climate"]
+PLATFORMS = ["climate", "sensor"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -24,12 +24,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Toshiba AC from a config entry."""
 
-    device_manager = ToshibaAcDeviceManager(
-        entry.data["username"],
-        entry.data["password"],
-        entry.data["device_id"],
-        entry.data["sas_token"]
-    )
+    device_manager = ToshibaAcDeviceManager(hass.loop, entry.data["username"], entry.data["password"], entry.data["device_id"], entry.data["sas_token"])
 
     try:
         await device_manager.connect()
