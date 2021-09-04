@@ -43,7 +43,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     except ToshibaAcHttpApiError:
         raise CannotConnect
     finally:
-        device_manager.shutdown()
+        await device_manager.shutdown()
 
     return {"username": data["username"], "password": data["password"], "device_id": device_id, "sas_token": sas_token}
 

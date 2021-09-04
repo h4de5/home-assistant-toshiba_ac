@@ -3,10 +3,16 @@
 import logging
 from datetime import datetime
 from homeassistant.const import DEVICE_CLASS_ENERGY, ENERGY_WATT_HOUR
-from homeassistant.components.sensor import (
-    STATE_CLASS_TOTAL_INCREASING,
-    SensorEntity,
-)
+
+try:
+    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
+except ImportError:
+    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING
+
+try:
+    from homeassistant.components.sensor import SensorEntity
+except ImportError:
+    from homeassistant.helpers.entity import Entity as SensorEntity
 
 from toshiba_ac.device import ToshibaAcDevice, ToshibaAcDeviceEnergyConsumption
 
@@ -34,11 +40,11 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         _LOGGER.debug("device %s", device)
         _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
 
-        sensor_entity = ToshibaSensor(device)
-
-        # _LOGGER.debug("entity %s", sensor_entity)
-
-        new_devices.append(sensor_entity)
+        if device.ac_energy_consumption:
+            sensor_entity = ToshibaSensor(device)
+            new_devices.append(sensor_entity)
+        else:
+            _LOGGER.warning("AC device does not seem to support energy monitoring")
     # If we have any new devices, add them
     if new_devices:
         _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
@@ -161,7 +167,7 @@ class ToshibaSensor(SensorEntity):
         if self._ac_energy_consumption:
             return self._ac_energy_consumption.since
         else:
-            return None
+            return datetime.now().date()
 
     @property
     def state(self) -> float:
