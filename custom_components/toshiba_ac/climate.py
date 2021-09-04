@@ -1,7 +1,7 @@
 """Platform for climate integration."""
 
 import logging
-from typing import List, Optional
+from typing import Any, List, Mapping, Optional
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_OFF,
     CURRENT_HVAC_COOL,
@@ -214,6 +214,9 @@ class ToshibaClimate(ClimateEntity):
         """
         if not self.is_on:
             return None
+
+        if self._device.ac_self_cleaning:
+            return "cleaning"
 
         if self._device.ac_power_selection == ToshibaAcFcuState.AcPowerSelection.POWER_50:
             return "low_power"
@@ -447,6 +450,20 @@ class ToshibaClimate(ClimateEntity):
         if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
             return convert_temperature(15, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return entity specific state attributes.
+
+        Implemented by platform classes. Convention for attribute names
+        is lowercase snake_case.
+        """
+        return {
+            "ac_merit_a_feature": self._device.ac_merit_a_feature,
+            "ac_merit_b_feature": self._device.ac_merit_b_feature,
+            "ac_merit_a_feature": self._device.ac_merit_a_feature,
+            "ac_self_cleaning": self._device.ac_self_cleaning,
+        }
 
 
 # end class ToshibaClimate
