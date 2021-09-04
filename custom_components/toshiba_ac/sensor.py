@@ -2,7 +2,9 @@
 
 import logging
 from datetime import datetime
-from homeassistant.const import DEVICE_CLASS_ENERGY, ENERGY_WATT_HOUR
+from typing import List
+from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
+from homeassistant.const import DEVICE_CLASS_ENERGY, DEVICE_CLASS_TEMPERATURE, ENERGY_WATT_HOUR, TEMP_CELSIUS
 
 try:
     from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
@@ -33,25 +35,31 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     # to HA. Note these are all added to a list, so async_add_devices can be
     # called just once.
     new_devices = []
+    outdoor_done = False
 
-    devices = await device_manager.get_devices()
+    devices: List[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
 
-        _LOGGER.debug("device %s", device)
-        _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
+        # _LOGGER.debug("device %s", device)
+        # _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
 
         if device.ac_energy_consumption:
-            sensor_entity = ToshibaSensor(device)
+            sensor_entity = ToshibaPowerSensor(device)
             new_devices.append(sensor_entity)
         else:
-            _LOGGER.warning("AC device does not seem to support energy monitoring")
+            _LOGGER.info("AC device does not seem to support energy monitoring")
+
+        if device.ac_outdoor_temperature != None and not outdoor_done:
+            sensor_entity = ToshibaTempSensor(device)
+            new_devices.append(sensor_entity)
+            outdoor_done = True
     # If we have any new devices, add them
     if new_devices:
         _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
         async_add_devices(new_devices)
 
 
-class ToshibaSensor(SensorEntity):
+class ToshibaPowerSensor(SensorEntity):
     """Provides a Toshiba Sensors."""
 
     # Our dummy class is PUSH, so we tell HA that it should not be polled
@@ -178,17 +186,91 @@ class ToshibaSensor(SensorEntity):
             # We have to return None so HA won't see this as new cycle
             return None
 
-    # @property
-    # def device_state_attributes(self):
-    #     """Return the state attributes."""
-    #     self._ac_energy_consumption = self._device.ac_energy_consumption
-
-    #     _LOGGER.debug("is it set in attributes:? %s", self._ac_energy_consumption)
-
-    #     if self._ac_energy_consumption:
-    #         return {"last_reset": self._ac_energy_consumption.since}
-    #     else:
-    #         return {"last_reset": datetime.utcnow().date()}
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        if self._ac_energy_consumption:
+            return {"last_reset": self._ac_energy_consumption.since}
 
 
-# end class ToshibaSensor
+# end class ToshibaPowerSensor
+
+
+class ToshibaTempSensor(SensorEntity):
+    """Provides a Toshiba Temperature Sensors."""
+
+    # Our dummy class is PUSH, so we tell HA that it should not be polled
+    should_poll = False
+
+    _device: ToshibaAcDevice = None
+    _ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
+
+    def __init__(self, toshiba_device: ToshibaAcDevice):
+        """Initialize the sensor."""
+        self._device = toshiba_device
+
+    # default entity properties
+
+    async def state_changed(self, dev):
+        """Call if we need to change the ha state."""
+        self.async_write_ha_state()
+
+    async def async_added_to_hass(self):
+        """Run when this Entity has been added to HA."""
+        self._device.on_energy_consumption_changed_callback.add(self.state_changed)
+
+    async def async_will_remove_from_hass(self):
+        """Entity being removed from hass."""
+        self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
+
+    @property
+    def unique_id(self):
+        """Return Unique ID string."""
+        return f"{self._device.ac_unique_id}_sensor"
+
+    @property
+    def device_info(self):
+        """Information about this entity/device."""
+        return {
+            "identifiers": {(DOMAIN, self._device.ac_unique_id)},
+            # If desired, the name for the device could be different to the entity
+            # "name": self.name,
+            "account": self._device.ac_id,
+            "device_id": self._device.device_id,
+            # "sw_version": self._roller.firmware_version,
+            # "model": self._roller.model,
+            "manufacturer": "Toshiba",
+        }
+
+    @property
+    def name(self):
+        """Return the name of the device."""
+        return self._device.name + " Outdoor Temperature"
+
+    @property
+    def available(self) -> bool:
+        """Return True if sensor is available."""
+        return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return TEMP_CELSIUS
+
+    @property
+    def device_class(self):
+        """Return the class of this device, from component DEVICE_CLASSES."""
+        return DEVICE_CLASS_TEMPERATURE
+
+    @property
+    def state_class(self) -> str:
+        """Return the state class of this entity."""
+        return STATE_CLASS_MEASUREMENT
+
+    @property
+    def state(self) -> float:
+        """Return the value of the sensor."""
+        return self._device.ac_outdoor_temperature
+
+
+# end class ToshibaTempSensor

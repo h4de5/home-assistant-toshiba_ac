@@ -96,6 +96,7 @@ class ToshibaClimate(ClimateEntity):
     # default entity properties
 
     async def state_changed(self, dev):
+        """Whenever state should change."""
         self.async_write_ha_state()
 
     async def async_added_to_hass(self):
@@ -289,6 +290,7 @@ class ToshibaClimate(ClimateEntity):
     @property
     def fan_mode(self):
         """Return the current fan mode. Requires SUPPORT_FAN_MODE."""
+        # return self._device.ac_fan_mode.name
         if self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.AUTO:
             return "auto"
         elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.LOW:
@@ -321,6 +323,7 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_SWING_MODE.
         """
+        # return self._device.ac_swing_mode.name
         if self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL:
             return "vertical"
         elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_HORIZONTAL:
@@ -452,17 +455,17 @@ class ToshibaClimate(ClimateEntity):
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
     @property
-    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+    def extra_state_attributes(self) -> Mapping[str, Any]:
         """Return entity specific state attributes.
 
         Implemented by platform classes. Convention for attribute names
         is lowercase snake_case.
         """
         return {
-            "ac_merit_a_feature": self._device.ac_merit_a_feature,
-            "ac_merit_b_feature": self._device.ac_merit_b_feature,
-            "ac_merit_a_feature": self._device.ac_merit_a_feature,
-            "ac_self_cleaning": self._device.ac_self_cleaning,
+            "ac_merit_a_feature": self._device.ac_merit_a_feature.name,
+            "ac_merit_b_feature": self._device.ac_merit_b_feature.name,
+            "ac_air_pure_ion": self._device.ac_air_pure_ion.name,
+            "ac_self_cleaning": self._device.ac_self_cleaning.name,
         }
 
 
