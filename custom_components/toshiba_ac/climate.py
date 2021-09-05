@@ -460,7 +460,7 @@ class ToshibaClimate(ClimateEntity):
             "merit_b_feature": self._device.ac_merit_b_feature.name,
             "air_pure_ion": self._device.ac_air_pure_ion.name,
             "self_cleaning": self._device.ac_self_cleaning.name,
-            "outdoot_temperature": self._device.ac_outdoor_temperature,
+            "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
 
 
