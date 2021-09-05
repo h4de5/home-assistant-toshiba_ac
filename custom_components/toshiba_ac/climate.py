@@ -2,43 +2,44 @@
 
 import logging
 from typing import Any, List, Mapping, Optional
+
+# import voluptuous as vol
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_OFF,
     CURRENT_HVAC_COOL,
-    CURRENT_HVAC_HEAT,
     CURRENT_HVAC_DRY,
-    # CURRENT_HVAC_IDLE,
     CURRENT_HVAC_FAN,
-    HVAC_MODE_OFF,
+    CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_OFF,
+    FAN_OFF,
+    FAN_ON,
     HVAC_MODE_AUTO,
     HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
     HVAC_MODE_DRY,
     HVAC_MODE_FAN_ONLY,
-    SUPPORT_TARGET_TEMPERATURE,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
     SUPPORT_FAN_MODE,
-    SUPPORT_SWING_MODE,
     SUPPORT_PRESET_MODE,
-    # SUPPORT_AUX_HEAT,
-    # FAN_AUTO,
-    # FAN_DIFFUSE,
-    FAN_ON,
-    FAN_OFF,
-    # FAN_LOW,
-    # FAN_MEDIUM,
-    # FAN_HIGH,
+    SUPPORT_SWING_MODE,
+    SUPPORT_TARGET_TEMPERATURE,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+from homeassistant.helpers import entity_platform
 from homeassistant.util.temperature import convert as convert_temperature
+
+from toshiba_ac.device import ToshibaAcDevice
+from toshiba_ac.fcu_state import ToshibaAcFcuState
+
+from . import SERVICES
 
 # , TEMP_FAHRENHEIT
 # from voluptuous.validators import Switch
-from .const import DOMAIN
+from .const import DOMAIN, SERVICE_SET_EXTENDED_FEATURE
 
-# from .toshiba_ac_control.toshiba_ac.fcu_state import ToshibaAcFcuState.AcStatus, AcMode, AcFanMode
-# from toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
-from toshiba_ac.fcu_state import ToshibaAcFcuState
-from toshiba_ac.device import ToshibaAcDevice
+# from .service import SERVICE_SET_FEATURE_SCHEMA
+
+# from homeassistant.helpers import config_validation as cv, entity_platform, service
+
 
 try:
     from homeassistant.components.climate import ClimateEntity
@@ -61,14 +62,45 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     # called just once.
     new_devices = []
 
+    # add entity services
+    platform = entity_platform.async_get_current_platform()
+
     devices = await device_manager.get_devices()
     for device in devices:
         climate_entity = ToshibaClimate(device)
         new_devices.append(climate_entity)
+
+        # await async_setup_service(api, hass)
+
+        platform.async_register_entity_service(
+            SERVICE_SET_EXTENDED_FEATURE,
+            SERVICES[SERVICE_SET_EXTENDED_FEATURE]["schema"],
+            SERVICE_SET_EXTENDED_FEATURE,
+        )
+
     # If we have any new devices, add them
     if new_devices:
         _LOGGER.info("Adding %d %s", len(new_devices), "climates")
         async_add_devices(new_devices)
+
+
+# async def async_setup_service(api: MultimaticApi, hass):
+#     """Set up services."""
+#     if not hass.data.get(SERVICES_HANDLER):
+#         service_handler = MultimaticServiceHandler(api, hass)
+#         for service_key in SERVICES:
+#             schema = SERVICES[service_key]["schema"]
+#             if not SERVICES[service_key].get("entity", False):
+#                 hass.services.async_register(DOMAIN, service_key, service_handler.service_call, schema=schema)
+#         hass.data[DOMAIN][SERVICES_HANDLER] = service_handler
+
+
+# async def async_unload_services(hass):
+#     """Remove service when integration is removed."""
+#     service_handler = hass.data[DOMAIN].get(SERVICES_HANDLER, None)
+#     if service_handler:
+#         for service_name in SERVICES:
+#             hass.services.async_remove(DOMAIN, service_name)
 
 
 class ToshibaClimate(ClimateEntity):
