@@ -226,7 +226,7 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return Unique ID string."""
-        return f"{self._device.ac_unique_id}_sensor"
+        return f"{self._device.ac_unique_id}_outdoor_temperature"
 
     @property
     def device_info(self):

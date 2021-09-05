@@ -179,18 +179,12 @@ class ToshibaClimate(ClimateEntity):
     @property
     def is_on(self):
         """Return True if the device is on or completely off."""
-        return self._device.ac_status == ToshibaAcFcuState.AcStatus.ON and self._device.ac_self_cleaning == ToshibaAcFcuState.AcSelfCleaning.OFF
+        return self._device.ac_status == ToshibaAcFcuState.AcStatus.ON
 
     @property
     def current_temperature(self):
         """Return current temperature."""
         return self._device.ac_indoor_temperature
-
-    # @property
-    # def current_humidity(self):
-    #     """Return current humidity."""
-    #     if self.has_state("umidita"):
-    #         return float(self._device.ac_temperature)
 
     @property
     def target_temperature(self):
@@ -213,11 +207,11 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_PRESET_MODE.
         """
+        if self._device.ac_self_cleaning == ToshibaAcFcuState.AcSelfCleaning.ON:
+            return "cleaning"
+
         if not self.is_on:
             return None
-
-        if self._device.ac_self_cleaning:
-            return "cleaning"
 
         if self._device.ac_power_selection == ToshibaAcFcuState.AcPowerSelection.POWER_50:
             return "low_power"
@@ -462,10 +456,11 @@ class ToshibaClimate(ClimateEntity):
         is lowercase snake_case.
         """
         return {
-            "ac_merit_a_feature": self._device.ac_merit_a_feature.name,
-            "ac_merit_b_feature": self._device.ac_merit_b_feature.name,
-            "ac_air_pure_ion": self._device.ac_air_pure_ion.name,
-            "ac_self_cleaning": self._device.ac_self_cleaning.name,
+            "merit_a_feature": self._device.ac_merit_a_feature.name,
+            "merit_b_feature": self._device.ac_merit_b_feature.name,
+            "air_pure_ion": self._device.ac_air_pure_ion.name,
+            "self_cleaning": self._device.ac_self_cleaning.name,
+            "outdoot_temperature": self._device.ac_outdoor_temperature,
         }
 
 
