@@ -2,7 +2,7 @@
   "name": "Toshiba AC",
   "content_in_root": false,
   "render_readme": true,
-  "domains": ["climate"],
+  "domains": ["climate", "sensor"],
   "homeassistant": "2021.8.0",
   "iot_class": ["Cloud Push"]
 }
