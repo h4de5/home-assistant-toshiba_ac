@@ -49,7 +49,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         else:
             _LOGGER.info("AC device does not seem to support energy monitoring")
 
-        if device.ac_outdoor_temperature != None and not outdoor_done:
+        if device.ac_outdoor_temperature is not None and not outdoor_done:
             sensor_entity = ToshibaTempSensor(device)
             new_devices.append(sensor_entity)
             outdoor_done = True
