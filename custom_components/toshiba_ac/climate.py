@@ -1,5 +1,6 @@
 """Platform for climate integration."""
 
+
 import logging
 from typing import Any, List, Mapping, Optional
 
@@ -30,11 +31,12 @@ from homeassistant.util.temperature import convert as convert_temperature
 from toshiba_ac.device import ToshibaAcDevice
 from toshiba_ac.fcu_state import ToshibaAcFcuState
 
-from . import SERVICES
+# from service import SERVICES
 
 # , TEMP_FAHRENHEIT
 # from voluptuous.validators import Switch
 from .const import DOMAIN, SERVICE_SET_EXTENDED_FEATURE
+from .service import SERVICES
 
 # from .service import SERVICE_SET_FEATURE_SCHEMA
 
