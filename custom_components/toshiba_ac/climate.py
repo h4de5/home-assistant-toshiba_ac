@@ -387,7 +387,7 @@ class ToshibaClimate(ClimateEntity):
         if set_temperature is None:
             return
 
-        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.HEATING_8C:
             # upper limit for target temp
             if set_temperature > 15:
                 set_temperature = 15
@@ -437,14 +437,14 @@ class ToshibaClimate(ClimateEntity):
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.HEATING_8C:
             return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.HEATING_8C:
             return convert_temperature(15, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
