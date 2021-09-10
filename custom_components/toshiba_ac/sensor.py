@@ -49,10 +49,14 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         else:
             _LOGGER.info("AC device does not seem to support energy monitoring")
 
-        if device.ac_outdoor_temperature is not None and not outdoor_done:
+        # We cannot check for device.ac_outdoor_temperature not being None
+        # as it will report None when outdoor unit is off
+        # i.e. when AC is in Fan mode or Off
+        if not outdoor_done:
             sensor_entity = ToshibaTempSensor(device)
             new_devices.append(sensor_entity)
             outdoor_done = True
+
     # If we have any new devices, add them
     if new_devices:
         _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
@@ -226,7 +230,7 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return Unique ID string."""
-        return f"{self._device.ac_unique_id}_sensor"
+        return f"{self._device.ac_unique_id}_outdoor_temperature"
 
     @property
     def device_info(self):
