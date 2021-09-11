@@ -24,19 +24,29 @@ from homeassistant.components.climate.const import (
     SUPPORT_SWING_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
+
+# from homeassistant.const import ATTR_COMMAND, ATTR_ENTITY_ID, ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+
+# from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 from homeassistant.util.temperature import convert as convert_temperature
+from homeassistant.exceptions import HomeAssistantError
 
 from toshiba_ac.device import ToshibaAcDevice
 from toshiba_ac.fcu_state import ToshibaAcFcuState
 
-# from service import SERVICES
 
 # , TEMP_FAHRENHEIT
 # from voluptuous.validators import Switch
 from .const import DOMAIN, SERVICE_SET_EXTENDED_FEATURE
 from .service import SERVICES
+
+# import voluptuous as vol
+
+
+# from service import SERVICES
+
 
 # from .service import SERVICE_SET_FEATURE_SCHEMA
 
@@ -73,11 +83,14 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         new_devices.append(climate_entity)
 
         # await async_setup_service(api, hass)
-
         platform.async_register_entity_service(
             SERVICE_SET_EXTENDED_FEATURE,
             SERVICES[SERVICE_SET_EXTENDED_FEATURE]["schema"],
-            SERVICE_SET_EXTENDED_FEATURE,
+            # {
+            #     vol.Required(ATTR_COMMAND): cv.time_period,
+            # },
+            # "async_"+SERVICE_SET_EXTENDED_FEATURE,
+            f"async_{SERVICE_SET_EXTENDED_FEATURE}",
         )
 
     # If we have any new devices, add them
@@ -496,6 +509,16 @@ class ToshibaClimate(ClimateEntity):
             "self_cleaning": self._device.ac_self_cleaning.name,
             "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
+
+    async def async_set_extended_feature(self, command: str) -> None:
+        """Set the extended feature for the climate."""
+        _LOGGER.info("Toshiba Climate setting extended feature: %s", command)
+
+        try:
+            await self._device.set_ac_air_pure_ion(ToshibaAcFcuState.AcAirPureIon.ON)
+
+        except Exception as ex:
+            raise HomeAssistantError(f"It was not possible to set the feature command onto {self.entity_id}.  Code: {ex.code}  Message: {ex.message}") from ex
 
 
 # end class ToshibaClimate

@@ -12,7 +12,8 @@ SERVICE_SET_EXTENDED_FEATURE_SCHEMA = vol.Schema(
     {
         vol.Required(ATTR_ENTITY_ID): vol.All(vol.Coerce(str)),
         vol.Required(ATTR_COMMAND): vol.All(vol.Coerce(str), vol.In(AVAILABLE_COMMANDS)),
-    }
+    },
+    extra=vol.ALLOW_EXTRA,
 )
 
 SERVICES = {
