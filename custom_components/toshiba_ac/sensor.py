@@ -221,11 +221,11 @@ class ToshibaTempSensor(SensorEntity):
 
     async def async_added_to_hass(self):
         """Run when this Entity has been added to HA."""
-        self._device.on_energy_consumption_changed_callback.add(self.state_changed)
+        self._device.on_state_changed_callback.add(self.state_changed)
 
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
-        self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
+        self._device.on_state_changed_callback.remove(self.state_changed)
 
     @property
     def unique_id(self):
