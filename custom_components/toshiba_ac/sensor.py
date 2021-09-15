@@ -274,7 +274,10 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def state(self) -> float:
         """Return the value of the sensor."""
-        return self._device.ac_outdoor_temperature
+        if self._device.ac_outdoor_temperature:
+            return self._device.ac_outdoor_temperature
+        else:
+            return ""
 
 
 # end class ToshibaTempSensor

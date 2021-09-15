@@ -154,7 +154,7 @@ class ToshibaClimate(ClimateEntity):
             "name": self.name,
             "account": self._device.ac_id,
             "device_id": self._device.device_id,
-            # "sw_version": self._roller.firmware_version,
+            "sw_version": self._device.firmware_version,
             # "model": self._roller.model,
             "manufacturer": "Toshiba",
         }
