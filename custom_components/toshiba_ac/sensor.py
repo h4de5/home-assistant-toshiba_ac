@@ -254,7 +254,10 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
-        return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        if self._device.ac_outdoor_temperature or self._device.ac_outdoor_temperature == 0:
+            return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        else:
+            return False
 
     @property
     def unit_of_measurement(self):
@@ -274,7 +277,7 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def state(self) -> float:
         """Return the value of the sensor."""
-        if self._device.ac_outdoor_temperature:
+        if self._device.ac_outdoor_temperature or self._device.ac_outdoor_temperature == 0:
             return self._device.ac_outdoor_temperature
         else:
             return ""
