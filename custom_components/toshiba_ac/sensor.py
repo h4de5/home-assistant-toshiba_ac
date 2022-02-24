@@ -1,7 +1,6 @@
 """Platform for sensor integration."""
 
 import logging
-from datetime import datetime
 from typing import List
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 from homeassistant.const import DEVICE_CLASS_ENERGY, DEVICE_CLASS_TEMPERATURE, ENERGY_WATT_HOUR, TEMP_CELSIUS
