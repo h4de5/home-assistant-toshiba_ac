@@ -388,8 +388,8 @@ class ToshibaClimate(ClimateEntity):
 
         if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
             # upper limit for target temp
-            if set_temperature > 15:
-                set_temperature = 15
+            if set_temperature > 13:
+                set_temperature = 13
             # lower limit for target temp
             elif set_temperature < 5:
                 set_temperature = 5
@@ -444,7 +444,7 @@ class ToshibaClimate(ClimateEntity):
     def max_temp(self) -> float:
         """Return the maximum temperature."""
         if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
-            return convert_temperature(15, TEMP_CELSIUS, self.temperature_unit)
+            return convert_temperature(13, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
     @property
