@@ -307,8 +307,8 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_SWING_MODE.
         """
-        return ["vertical", "off"]
-        # return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
+        # return ["vertical", "off"]
+        return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
 
     @property
     def swing_mode(self) -> Optional[str]:
