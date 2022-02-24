@@ -38,13 +38,17 @@ You need a supported (or compatible) Toshiba AC device with either a built-in Wi
 
 ## Compatible devices
 
-If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control&gl=US) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware:
+If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware:
 
 - Suzumi Plus R32 18G
 
   - Indoor device: RAS-18PKVSG-E
   - Outdoor device: RAS-18PAVSG-E
   - Wifi: RB-N103S-G or similar/compatible
+  - 
+  - Indoor unit: RAS-25J2KVSG-ND, RAS-35J2KVSG-ND
+  - Outdoor unit: RAS-25J2AVSG-ND, RAS-35J2AVSG-ND
+  - Wifi: WRE-T00AJ10 (RB-N105S-G or RN-N106S-G)
 
 - Seiya
 
