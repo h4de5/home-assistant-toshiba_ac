@@ -352,8 +352,10 @@ class ToshibaClimate(ClimateEntity):
             return "fixed4"
         elif self._device.ac_swing_mode == ToshibaAcSwingMode.FIXED_5:
             return "fixed5"
-        else:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.OFF:
             return "off"
+        else:
+            return "notused"
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
@@ -441,7 +443,9 @@ class ToshibaClimate(ClimateEntity):
         elif swing_mode == "fixed5":
             await self._device.set_ac_swing_mode(ToshibaAcSwingMode.FIXED_5)
         elif swing_mode == "off":
-            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.NOT_USED)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.OFF)
+        elif swing_mode == "notused":
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.NONE)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
