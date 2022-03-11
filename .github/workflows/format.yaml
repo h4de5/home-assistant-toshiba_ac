@@ -1,14 +1,16 @@
-name: Check code format
+name: Lint
 
 on:
   push:
+    branches: [main]
   pull_request:
-
+    # The branches below must be a subset of the branches above
+    branches: [main]
 
 jobs:
-  format:
-    runs-on: "ubuntu-latest"
+  black:
+    name: Black
+    runs-on: ubuntu-latest
     steps:
-      - uses: "actions/checkout@v2"
-      - name: Formatting check
-        uses: RojerGS/python-black-check@master
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
