@@ -7,47 +7,66 @@
 
 # Toshiba - Air conditioning
 
-## Requirements
-
 Toshiba AC integration into home-assistant.io
 
-Tested with the following Hardware:
+## Requirements
 
-- Suzumi Plus R32 18G
-    - Indoor device: RAS-18PKVSG-E
-    - Outdoor device: RAS-18PAVSG-E
-    - Wifi Adapter: RB-N103S-G or similar/compatible
-- Haori
-    - Indoor device: RAS-B16N4KVRG-E
-    - Outdoor device: RAS-16J2AVSG-E1
-    - WiFi Adapter: built-in
+You need a supported (or compatible) Toshiba AC device with either a built-in Wifi module or an adapter. See [list of compatible devices](#compatible-devices)
 
 ## Installation
 
 ### Installation with HACS
 
-- In HACS go to integrations and click three dots in upper right corner
-- Select `Custom repositories`
-- Paste URL of this repository (https://github.com/h4de5/home-assistant-toshiba_ac.git) in `Add custom repository URL`
-- Select `Integration` in `Category` drop-down list
-- Click `Add`
-- `Toshiba AC` should appear on the list above, click it
-- Click `INSTALL THIS REPOSITORY IN HACS`
+- In HACS go to integrations and search for 'Toshiba AC'
+- Click `Install`
 - Reboot Home Assistant
-- The integration should be available as `Toshiba AC` in the `Add integration dialog` after a restart
-- The integration will automatically install dependencies (like [toshiba controller](https://github.com/KaSroka/Toshiba-AC-control)) upon activating it
-- You need to enter your Toshiba AC account credentials (same as within the app)
-- There is no bounding/registering of new AC units possible with this code - please continue to use the app for this
+- Follow common integration manual
 
-### Manual installation
+### or: Manual installation
 
 - Download [latest release](https://github.com/h4de5/home-assistant-toshiba_ac/releases)
 - Create a folder: `custom_components` in your home-assistant config directory
 - Extract content (the folder `toshiba_ac`) of the release zip into the newly created directory
-- The integration should be available as `Toshiba AC` in the `Add integration dialog` after a restart
-- The integration will automatically install dependencies (like [toshiba controller](https://github.com/KaSroka/Toshiba-AC-control)) upon activating it
+- Reboot Home Assistant
+- Follow common integration manual
+
+### Common manual to activate the integration
+
+- The integration should be available as `Toshiba AC` in the `Add integration dialog`
 - You need to enter your Toshiba AC account credentials (same as within the app)
 - There is no bounding/registering of new AC units possible with this code - please continue to use the app for this
+
+## Compatible devices
+
+If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware:
+
+- Suzumi Plus R32 18G
+
+  - Indoor device: RAS-18PKVSG-E
+  - Outdoor device: RAS-18PAVSG-E
+  - Wifi: RB-N103S-G or similar/compatible
+  - 
+  - Indoor unit: RAS-25J2KVSG-ND, RAS-35J2KVSG-ND
+  - Outdoor unit: RAS-25J2AVSG-ND, RAS-35J2AVSG-ND
+  - Wifi: WRE-T00AJ10 (RB-N105S-G or RN-N106S-G)
+
+- Seiya
+
+  - Indoor device: Console J2FG RAS-B10J2FVG-E
+  - Indoor device: Split Seiya RAS-Bxx-J2KVG-E / RAS-B07-B13-J2KVG-E
+  - Outdoor device: RAS-4M27U2AVG-E
+  - Wifi: RB-102S-G
+
+- Haori
+
+  - Indoor device: RAS-B16N4KVRG-E
+  - Outdoor device: RAS-16J2AVSG-E1
+  - WiFi: built-in
+
+- Toshiba Signatur 25
+  - Indoor unit: RAS-25N4KVRG-ND
+  - Outdoor: RAS-25J2AVSG-ND1
+  - Wifi: built-in
 
 ## More links and resources
 

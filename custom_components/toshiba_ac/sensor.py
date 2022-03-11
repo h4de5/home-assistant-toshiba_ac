@@ -1,7 +1,6 @@
 """Platform for sensor integration."""
 
 import logging
-from datetime import datetime
 from typing import List
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 from homeassistant.const import DEVICE_CLASS_ENERGY, DEVICE_CLASS_TEMPERATURE, ENERGY_WATT_HOUR, TEMP_CELSIUS
@@ -49,10 +48,14 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         else:
             _LOGGER.info("AC device does not seem to support energy monitoring")
 
-        if device.ac_outdoor_temperature is not None and not outdoor_done:
+        # We cannot check for device.ac_outdoor_temperature not being None
+        # as it will report None when outdoor unit is off
+        # i.e. when AC is in Fan mode or Off
+        if not outdoor_done:
             sensor_entity = ToshibaTempSensor(device)
             new_devices.append(sensor_entity)
             outdoor_done = True
+
     # If we have any new devices, add them
     if new_devices:
         _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
@@ -169,13 +172,13 @@ class ToshibaPowerSensor(SensorEntity):
         """Return the state class of this entity."""
         return STATE_CLASS_TOTAL_INCREASING
 
-    @property
-    def last_reset(self) -> datetime:
-        """Return the time when the sensor was last reset, if any."""
-        if self._ac_energy_consumption:
-            return self._ac_energy_consumption.since
-        else:
-            return datetime.now().date()
+    # @property
+    # def last_reset(self) -> datetime:
+    #     """Return the time when the sensor was last reset, if any."""
+    #     if self._ac_energy_consumption:
+    #         return self._ac_energy_consumption.since
+    #     else:
+    #         return datetime.now().date()
 
     @property
     def state(self) -> float:
@@ -217,16 +220,16 @@ class ToshibaTempSensor(SensorEntity):
 
     async def async_added_to_hass(self):
         """Run when this Entity has been added to HA."""
-        self._device.on_energy_consumption_changed_callback.add(self.state_changed)
+        self._device.on_state_changed_callback.add(self.state_changed)
 
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
-        self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
+        self._device.on_state_changed_callback.remove(self.state_changed)
 
     @property
     def unique_id(self):
         """Return Unique ID string."""
-        return f"{self._device.ac_unique_id}_sensor"
+        return f"{self._device.ac_unique_id}_outdoor_temperature"
 
     @property
     def device_info(self):
@@ -250,7 +253,10 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
-        return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        if self._device.ac_outdoor_temperature or self._device.ac_outdoor_temperature == 0:
+            return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        else:
+            return False
 
     @property
     def unit_of_measurement(self):
@@ -270,7 +276,10 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def state(self) -> float:
         """Return the value of the sensor."""
-        return self._device.ac_outdoor_temperature
+        if self._device.ac_outdoor_temperature or self._device.ac_outdoor_temperature == 0:
+            return self._device.ac_outdoor_temperature
+        else:
+            return ""
 
 
 # end class ToshibaTempSensor

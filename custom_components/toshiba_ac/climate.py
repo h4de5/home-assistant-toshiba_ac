@@ -35,10 +35,9 @@ from homeassistant.util.temperature import convert as convert_temperature
 # from voluptuous.validators import Switch
 from .const import DOMAIN
 
-# from .toshiba_ac_control.toshiba_ac.fcu_state import ToshibaAcFcuState.AcStatus, AcMode, AcFanMode
+# from .toshiba_ac_control.toshiba_ac.fcu_state import ToshibaAcStatus, AcMode, AcFanMode
 # from toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
-from toshiba_ac.fcu_state import ToshibaAcFcuState
-from toshiba_ac.device import ToshibaAcDevice
+from toshiba_ac.device import ToshibaAcDevice, ToshibaAcStatus, ToshibaAcPowerSelection, ToshibaAcSwingMode, ToshibaAcFanMode, ToshibaAcMode, ToshibaAcMeritA, ToshibaAcSelfCleaning
 
 try:
     from homeassistant.components.climate import ClimateEntity
@@ -154,7 +153,7 @@ class ToshibaClimate(ClimateEntity):
             "name": self.name,
             "account": self._device.ac_id,
             "device_id": self._device.device_id,
-            # "sw_version": self._roller.firmware_version,
+            "sw_version": self._device.firmware_version,
             # "model": self._roller.model,
             "manufacturer": "Toshiba",
         }
@@ -179,18 +178,12 @@ class ToshibaClimate(ClimateEntity):
     @property
     def is_on(self):
         """Return True if the device is on or completely off."""
-        return self._device.ac_status == ToshibaAcFcuState.AcStatus.ON and self._device.ac_self_cleaning == ToshibaAcFcuState.AcSelfCleaning.OFF
+        return self._device.ac_status == ToshibaAcStatus.ON
 
     @property
     def current_temperature(self):
         """Return current temperature."""
         return self._device.ac_indoor_temperature
-
-    # @property
-    # def current_humidity(self):
-    #     """Return current humidity."""
-    #     if self.has_state("umidita"):
-    #         return float(self._device.ac_temperature)
 
     @property
     def target_temperature(self):
@@ -213,15 +206,15 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_PRESET_MODE.
         """
+        if self._device.ac_self_cleaning == ToshibaAcSelfCleaning.ON:
+            return "cleaning"
+
         if not self.is_on:
             return None
 
-        if self._device.ac_self_cleaning:
-            return "cleaning"
-
-        if self._device.ac_power_selection == ToshibaAcFcuState.AcPowerSelection.POWER_50:
+        if self._device.ac_power_selection == ToshibaAcPowerSelection.POWER_50:
             return "low_power"
-        elif self._device.ac_power_selection == ToshibaAcFcuState.AcPowerSelection.POWER_75:
+        elif self._device.ac_power_selection == ToshibaAcPowerSelection.POWER_75:
             return "mid_power"
         else:
             return "high_power"
@@ -240,15 +233,15 @@ class ToshibaClimate(ClimateEntity):
         if not self.is_on:
             return HVAC_MODE_OFF
 
-        if self._device.ac_mode == ToshibaAcFcuState.AcMode.AUTO:
+        if self._device.ac_mode == ToshibaAcMode.AUTO:
             return HVAC_MODE_AUTO
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.COOL:
+        elif self._device.ac_mode == ToshibaAcMode.COOL:
             return HVAC_MODE_COOL
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.HEAT:
+        elif self._device.ac_mode == ToshibaAcMode.HEAT:
             return HVAC_MODE_HEAT
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.DRY:
+        elif self._device.ac_mode == ToshibaAcMode.DRY:
             return HVAC_MODE_DRY
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.FAN:
+        elif self._device.ac_mode == ToshibaAcMode.FAN:
             return HVAC_MODE_FAN_ONLY
         else:
             return HVAC_MODE_OFF
@@ -265,15 +258,15 @@ class ToshibaClimate(ClimateEntity):
         if not self.is_on:
             return CURRENT_HVAC_OFF
 
-        if self._device.ac_mode == ToshibaAcFcuState.AcMode.AUTO:
+        if self._device.ac_mode == ToshibaAcMode.AUTO:
             return CURRENT_HVAC_COOL  # CURRENT_HVAC_IDLE
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.COOL:
+        elif self._device.ac_mode == ToshibaAcMode.COOL:
             return CURRENT_HVAC_COOL
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.HEAT:
+        elif self._device.ac_mode == ToshibaAcMode.HEAT:
             return CURRENT_HVAC_HEAT
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.DRY:
+        elif self._device.ac_mode == ToshibaAcMode.DRY:
             return CURRENT_HVAC_DRY
-        elif self._device.ac_mode == ToshibaAcFcuState.AcMode.FAN:
+        elif self._device.ac_mode == ToshibaAcMode.FAN:
             return CURRENT_HVAC_FAN
         else:
             return CURRENT_HVAC_OFF
@@ -291,19 +284,19 @@ class ToshibaClimate(ClimateEntity):
     def fan_mode(self):
         """Return the current fan mode. Requires SUPPORT_FAN_MODE."""
         # return self._device.ac_fan_mode.name
-        if self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.AUTO:
+        if self._device.ac_fan_mode == ToshibaAcFanMode.AUTO:
             return "auto"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.LOW:
+        elif self._device.ac_fan_mode == ToshibaAcFanMode.LOW:
             return "low"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.MEDIUM_LOW:
+        elif self._device.ac_fan_mode == ToshibaAcFanMode.MEDIUM_LOW:
             return "medium_low"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.MEDIUM:
+        elif self._device.ac_fan_mode == ToshibaAcFanMode.MEDIUM:
             return "medium"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.MEDIUM_HIGH:
+        elif self._device.ac_fan_mode == ToshibaAcFanMode.MEDIUM_HIGH:
             return "medium_high"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.HIGH:
+        elif self._device.ac_fan_mode == ToshibaAcFanMode.HIGH:
             return "high"
-        elif self._device.ac_fan_mode == ToshibaAcFcuState.AcFanMode.QUIET:
+        elif self._device.ac_fan_mode == ToshibaAcFanMode.QUIET:
             return "quiet"
         else:
             return FAN_ON
@@ -314,8 +307,8 @@ class ToshibaClimate(ClimateEntity):
 
         Requires SUPPORT_SWING_MODE.
         """
-        return ["vertical", "off"]
-        # return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
+        # return ["vertical", "off"]
+        return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
 
     @property
     def swing_mode(self) -> Optional[str]:
@@ -324,21 +317,21 @@ class ToshibaClimate(ClimateEntity):
         Requires SUPPORT_SWING_MODE.
         """
         # return self._device.ac_swing_mode.name
-        if self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL:
+        if self._device.ac_swing_mode == ToshibaAcSwingMode.SWING_VERTICAL:
             return "vertical"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_HORIZONTAL:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.SWING_HORIZONTAL:
             return "horizontal"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL_AND_HORIZONTAL:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.SWING_VERTICAL_AND_HORIZONTAL:
             return "vertical_horizontal"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_1:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.FIXED_1:
             return "fixed1"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_2:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.FIXED_2:
             return "fixed2"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_3:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.FIXED_3:
             return "fixed3"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_4:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.FIXED_4:
             return "fixed4"
-        elif self._device.ac_swing_mode == ToshibaAcFcuState.AcSwingMode.FIXED_5:
+        elif self._device.ac_swing_mode == ToshibaAcSwingMode.FIXED_5:
             return "fixed5"
         else:
             return "off"
@@ -348,44 +341,44 @@ class ToshibaClimate(ClimateEntity):
         _LOGGER.info("Toshiba Climate setting fan_mode: %s", fan_mode)
 
         if fan_mode == FAN_OFF:
-            await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.OFF)
+            await self._device.set_ac_status(ToshibaAcStatus.OFF)
         else:
             if not self.is_on:
-                await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.ON)
+                await self._device.set_ac_status(ToshibaAcStatus.ON)
             if fan_mode == "low":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.LOW)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.LOW)
             elif fan_mode == "medium_low":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.MEDIUM_LOW)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.MEDIUM_LOW)
             elif fan_mode == "medium":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.MEDIUM)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.MEDIUM)
             elif fan_mode == "medium_high":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.MEDIUM_HIGH)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.MEDIUM_HIGH)
             elif fan_mode == "high":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.HIGH)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.HIGH)
             elif fan_mode == "auto":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.AUTO)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.AUTO)
             elif fan_mode == "quiet":
-                await self._device.set_ac_fan_mode(ToshibaAcFcuState.AcFanMode.QUIET)
+                await self._device.set_ac_fan_mode(ToshibaAcFanMode.QUIET)
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         _LOGGER.info("Toshiba Climate setting hvac_mode: %s", hvac_mode)
 
         if hvac_mode == HVAC_MODE_OFF:
-            await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.OFF)
+            await self._device.set_ac_status(ToshibaAcStatus.OFF)
         else:
             if not self.is_on:
-                await self._device.set_ac_status(ToshibaAcFcuState.AcStatus.ON)
+                await self._device.set_ac_status(ToshibaAcStatus.ON)
             if hvac_mode == HVAC_MODE_AUTO:
-                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.AUTO)
+                await self._device.set_ac_mode(ToshibaAcMode.AUTO)
             elif hvac_mode == HVAC_MODE_COOL:
-                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.COOL)
+                await self._device.set_ac_mode(ToshibaAcMode.COOL)
             elif hvac_mode == HVAC_MODE_HEAT:
-                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.HEAT)
+                await self._device.set_ac_mode(ToshibaAcMode.HEAT)
             elif hvac_mode == HVAC_MODE_DRY:
-                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.DRY)
+                await self._device.set_ac_mode(ToshibaAcMode.DRY)
             elif hvac_mode == HVAC_MODE_FAN_ONLY:
-                await self._device.set_ac_mode(ToshibaAcFcuState.AcMode.FAN)
+                await self._device.set_ac_mode(ToshibaAcMode.FAN)
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -393,10 +386,10 @@ class ToshibaClimate(ClimateEntity):
         if set_temperature is None:
             return
 
-        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
             # upper limit for target temp
-            if set_temperature > 15:
-                set_temperature = 15
+            if set_temperature > 13:
+                set_temperature = 13
             # lower limit for target temp
             elif set_temperature < 5:
                 set_temperature = 5
@@ -413,45 +406,45 @@ class ToshibaClimate(ClimateEntity):
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
         if swing_mode == "vertical":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.SWING_VERTICAL)
         elif swing_mode == "horizontal":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.SWING_HORIZONTAL)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.SWING_HORIZONTAL)
         elif swing_mode == "vertical_horizontal":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.SWING_VERTICAL_AND_HORIZONTAL)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.SWING_VERTICAL_AND_HORIZONTAL)
         elif swing_mode == "fixed1":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.FIXED_1)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.FIXED_1)
         elif swing_mode == "fixed2":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.FIXED_2)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.FIXED_2)
         elif swing_mode == "fixed3":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.FIXED_3)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.FIXED_3)
         elif swing_mode == "fixed4":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.FIXED_4)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.FIXED_4)
         elif swing_mode == "fixed5":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.FIXED_5)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.FIXED_5)
         elif swing_mode == "off":
-            await self._device.set_ac_swing_mode(ToshibaAcFcuState.AcSwingMode.NOT_USED)
+            await self._device.set_ac_swing_mode(ToshibaAcSwingMode.NOT_USED)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         if preset_mode == "low_power":
-            await self._device.set_ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_50)
+            await self._device.set_ac_power_selection(ToshibaAcPowerSelection.POWER_50)
         elif preset_mode == "mid_power":
-            await self._device.set_ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_75)
+            await self._device.set_ac_power_selection(ToshibaAcPowerSelection.POWER_75)
         elif preset_mode == "high_power":
-            await self._device.set_ac_power_selection(ToshibaAcFcuState.AcPowerSelection.POWER_100)
+            await self._device.set_ac_power_selection(ToshibaAcPowerSelection.POWER_100)
 
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
+        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
             return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        if hasattr(self._device, "ac_merit_a_feature") and self._device.ac_merit_a_feature == ToshibaAcFcuState.AcMeritAFeature.SAVE:
-            return convert_temperature(15, TEMP_CELSIUS, self.temperature_unit)
+        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
+            return convert_temperature(13, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
     @property
@@ -462,10 +455,11 @@ class ToshibaClimate(ClimateEntity):
         is lowercase snake_case.
         """
         return {
-            "ac_merit_a_feature": self._device.ac_merit_a_feature.name,
-            "ac_merit_b_feature": self._device.ac_merit_b_feature.name,
-            "ac_air_pure_ion": self._device.ac_air_pure_ion.name,
-            "ac_self_cleaning": self._device.ac_self_cleaning.name,
+            "merit_a_feature": self._device.ac_merit_a.name,
+            "merit_b_feature": self._device.ac_merit_b.name,
+            "air_pure_ion": self._device.ac_air_pure_ion.name,
+            "self_cleaning": self._device.ac_self_cleaning.name,
+            "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
 
 
