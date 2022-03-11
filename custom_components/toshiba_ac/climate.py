@@ -37,7 +37,16 @@ from .const import DOMAIN
 
 # from .toshiba_ac_control.toshiba_ac.fcu_state import ToshibaAcStatus, AcMode, AcFanMode
 # from toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
-from toshiba_ac.device import ToshibaAcDevice, ToshibaAcStatus, ToshibaAcPowerSelection, ToshibaAcSwingMode, ToshibaAcFanMode, ToshibaAcMode, ToshibaAcMeritA, ToshibaAcSelfCleaning
+from toshiba_ac.device import (
+    ToshibaAcDevice,
+    ToshibaAcStatus,
+    ToshibaAcPowerSelection,
+    ToshibaAcSwingMode,
+    ToshibaAcFanMode,
+    ToshibaAcMode,
+    ToshibaAcMeritA,
+    ToshibaAcSelfCleaning,
+)
 
 try:
     from homeassistant.components.climate import ClimateEntity
@@ -308,7 +317,17 @@ class ToshibaClimate(ClimateEntity):
         Requires SUPPORT_SWING_MODE.
         """
         # return ["vertical", "off"]
-        return ["vertical", "horizontal", "vertical_horizontal", "fixed1", "fixed2", "fixed3", "fixed4", "fixed5", "off"]
+        return [
+            "vertical",
+            "horizontal",
+            "vertical_horizontal",
+            "fixed1",
+            "fixed2",
+            "fixed3",
+            "fixed4",
+            "fixed5",
+            "off",
+        ]
 
     @property
     def swing_mode(self) -> Optional[str]:
