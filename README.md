@@ -38,35 +38,8 @@ You need a supported (or compatible) Toshiba AC device with either a built-in Wi
 
 ## Compatible devices
 
-If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware:
+If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware: [List of Supported Devices](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45) - feel free to update that list!
 
-- Suzumi Plus R32 18G
-
-  - Indoor device: RAS-18PKVSG-E
-  - Outdoor device: RAS-18PAVSG-E
-  - Wifi: RB-N103S-G or similar/compatible
-  - 
-  - Indoor unit: RAS-25J2KVSG-ND, RAS-35J2KVSG-ND
-  - Outdoor unit: RAS-25J2AVSG-ND, RAS-35J2AVSG-ND
-  - Wifi: WRE-T00AJ10 (RB-N105S-G or RN-N106S-G)
-
-- Seiya
-
-  - Indoor device: Console J2FG RAS-B10J2FVG-E
-  - Indoor device: Split Seiya RAS-Bxx-J2KVG-E / RAS-B07-B13-J2KVG-E
-  - Outdoor device: RAS-4M27U2AVG-E
-  - Wifi: RB-102S-G
-
-- Haori
-
-  - Indoor device: RAS-B16N4KVRG-E
-  - Outdoor device: RAS-16J2AVSG-E1
-  - WiFi: built-in
-
-- Toshiba Signatur 25
-  - Indoor unit: RAS-25N4KVRG-ND
-  - Outdoor: RAS-25J2AVSG-ND1
-  - Wifi: built-in
 
 ## More links and resources
 
