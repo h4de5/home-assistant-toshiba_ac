@@ -1,0 +1,21 @@
+{
+	"config": {
+		"abort": {
+			"already_configured": "Das Gerät ist bereits konfiguriert."
+		},
+		"error": {
+			"cannot_connect": "Fehler beim Verbinden",
+			"invalid_auth": "Benutzerdaten konnten nicht verifiziert werden",
+			"unknown": "Unerwarteter Fehler"
+		},
+		"step": {
+			"user": {
+				"data": {
+					"host": "Host",
+					"password": "Passwort",
+					"username": "Benutzername"
+				}
+			}
+		}
+	}
+}
