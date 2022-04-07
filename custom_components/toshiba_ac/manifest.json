@@ -1,15 +1,15 @@
 {
-  "domain": "toshiba_ac",
-  "name": "Toshiba AC",
-  "config_flow": true,
-  "documentation": "https://github.com/h4de5/home-assistant-toshiba_ac",
-  "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
-  "requirements": ["toshiba-ac==0.2.3"],
-  "ssdp": [],
-  "zeroconf": [],
-  "homekit": {},
-  "dependencies": [],
-  "codeowners": ["@h4de5"],
-  "version": "2022.2.3",
-  "iot_class": "cloud_push"
+	"domain": "toshiba_ac",
+	"name": "Toshiba AC",
+	"config_flow": true,
+	"documentation": "https://github.com/h4de5/home-assistant-toshiba_ac",
+	"issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
+	"requirements": ["toshiba-ac==0.2.3"],
+	"ssdp": [],
+	"zeroconf": [],
+	"homekit": {},
+	"dependencies": [],
+	"codeowners": ["@h4de5"],
+	"version": "2022.4.1",
+	"iot_class": "cloud_push"
 }
