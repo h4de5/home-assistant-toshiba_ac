@@ -2,6 +2,5 @@
   "name": "Toshiba AC",
   "content_in_root": false,
   "render_readme": true,
-  "homeassistant": "2021.8.0",
-  "iot_class": ["Cloud Push"]
+  "homeassistant": "2021.8.0"
 }
