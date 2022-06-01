@@ -1,7 +1,7 @@
 """Platform for climate integration."""
 
 import logging
-from typing import Any, List, Mapping, Optional
+from typing import Any, Mapping, Optional
 
 from toshiba_ac.device import (
     ToshibaAcDevice,
@@ -282,7 +282,7 @@ class ToshibaClimate(ClimateEntity):
         return pretty_enum_name(self._device.ac_power_selection)
 
     @property
-    def preset_modes(self) -> Optional[List[str]]:
+    def preset_modes(self) -> Optional[list[str]]:
         """Return a list of available preset modes.
 
         Requires SUPPORT_PRESET_MODE.
@@ -382,7 +382,7 @@ class ToshibaClimate(ClimateEntity):
 
     # FAN MODES
     @property
-    def fan_modes(self) -> Optional[List[str]]:
+    def fan_modes(self) -> Optional[list[str]]:
         """Return the list of available fan modes.
 
         Requires SUPPORT_FAN_MODE.
@@ -410,7 +410,7 @@ class ToshibaClimate(ClimateEntity):
 
     # SWING MODES
     @property
-    def swing_modes(self) -> Optional[List[str]]:
+    def swing_modes(self) -> Optional[list[str]]:
         """Return the list of available swing modes.
 
         Requires SUPPORT_SWING_MODE.
@@ -466,13 +466,13 @@ class ToshibaClimate(ClimateEntity):
             "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
 
-    def get_feature_list(self, feature_list: List[Any]) -> List[Any]:
+    def get_feature_list(self, feature_list: list[Any]) -> list[Any]:
         """Return a list of features supported by the device."""
         return [
             pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"
         ]
 
-    def get_feature_list_id(self, feature_list: List[Any], feature_name: str) -> Any:
+    def get_feature_list_id(self, feature_list: list[Any], feature_name: str) -> Any:
         """Return the enum value of that item with the given name from a feature list."""
         _LOGGER.debug("searching %s for %s", feature_list, feature_name)
 

@@ -1,7 +1,6 @@
 """Platform for sensor integration."""
 
 import logging
-from typing import List
 
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 from homeassistant.const import (
@@ -44,7 +43,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     new_devices = []
     outdoor_done = False
 
-    devices: List[ToshibaAcDevice] = await device_manager.get_devices()
+    devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
 
         # _LOGGER.debug("device %s", device)
