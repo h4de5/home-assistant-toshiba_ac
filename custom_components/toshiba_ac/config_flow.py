@@ -5,14 +5,14 @@ import logging
 import random
 from typing import Any
 
+from toshiba_ac.device_manager import ToshibaAcDeviceManager
+from toshiba_ac.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
 import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
-
-from toshiba_ac.device_manager import ToshibaAcDeviceManager
-from toshiba_ac.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
 
 from .const import DOMAIN
 
@@ -33,7 +33,9 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     """
     device_id = f"{random.getrandbits(64):016x}"
 
-    device_manager = ToshibaAcDeviceManager(hass.loop, data["username"], data["password"], device_id)
+    device_manager = ToshibaAcDeviceManager(
+        hass.loop, data["username"], data["password"], device_id
+    )
 
     try:
         sas_token = await device_manager.connect()
@@ -45,7 +47,12 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     finally:
         await device_manager.shutdown()
 
-    return {"username": data["username"], "password": data["password"], "device_id": device_id, "sas_token": sas_token}
+    return {
+        "username": data["username"],
+        "password": data["password"],
+        "device_id": device_id,
+        "sas_token": sas_token,
+    }
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -55,10 +62,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Handle the initial step."""
         if user_input is None:
-            return self.async_show_form(step_id="user", data_schema=STEP_USER_DATA_SCHEMA)
+            return self.async_show_form(
+                step_id="user", data_schema=STEP_USER_DATA_SCHEMA
+            )
 
         errors = {}
 
@@ -74,7 +85,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             return self.async_create_entry(title=user_input["username"], data=data)
 
-        return self.async_show_form(step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors)
+        return self.async_show_form(
+            step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
+        )
 
 
 class CannotConnect(HomeAssistantError):

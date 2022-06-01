@@ -1,0 +1,3 @@
+-r requirements.txt
+homeassistant==2022.5.5
+pre-commit
