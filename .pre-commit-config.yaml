@@ -1,0 +1,44 @@
+repos:
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.32.1
+    hooks:
+      - id: pyupgrade
+        args: [--py39-plus]
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        args:
+          - --safe
+          - --quiet
+        files: ^((custom_components)/.+)?[^/]+\.py$
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=hass,alot,datas,dof,dur,farenheit,hist,iff,ines,ist,lightsensor,mut,nd,pres,referer,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing
+          - --skip="./.*,*.csv,*.json,*.md"
+          - --quiet-level=2
+        exclude_types: [csv, json]
+  - repo: https://github.com/PyCQA/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - pycodestyle==2.8.0
+          - pyflakes==2.4.0
+          - flake8-docstrings==1.6.0
+          - pydocstyle==6.1.1
+          - flake8-comprehensions==3.8.0
+          - flake8-noqa==1.2.1
+          - mccabe==0.6.1
+        files: ^(custom_components)/.+\.py$
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.26.3
+    hooks:
+      - id: yamllint

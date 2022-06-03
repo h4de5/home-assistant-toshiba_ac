@@ -1,12 +1,12 @@
 """The Toshiba AC integration."""
 from __future__ import annotations
 
+from toshiba_ac.device_manager import ToshibaAcDeviceManager
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
-
-from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 PLATFORMS = ["climate", "sensor"]
 
@@ -24,7 +24,11 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Toshiba AC from a config entry."""
     device_manager = ToshibaAcDeviceManager(
-        hass.loop, entry.data["username"], entry.data["password"], entry.data["device_id"], entry.data["sas_token"]
+        hass.loop,
+        entry.data["username"],
+        entry.data["password"],
+        entry.data["device_id"],
+        entry.data["sas_token"],
     )
 
     try:

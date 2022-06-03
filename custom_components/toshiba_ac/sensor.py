@@ -1,14 +1,21 @@
 """Platform for sensor integration."""
 
 import logging
-from typing import List
+
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
-from homeassistant.const import DEVICE_CLASS_ENERGY, DEVICE_CLASS_TEMPERATURE, ENERGY_WATT_HOUR, TEMP_CELSIUS
+from homeassistant.const import (
+    DEVICE_CLASS_ENERGY,
+    DEVICE_CLASS_TEMPERATURE,
+    ENERGY_WATT_HOUR,
+    TEMP_CELSIUS,
+)
 
 try:
     from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
 except ImportError:
-    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING
+    from homeassistant.components.sensor import (
+        STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING,
+    )
 
 try:
     from homeassistant.components.sensor import SensorEntity
@@ -36,7 +43,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     new_devices = []
     outdoor_done = False
 
-    devices: List[ToshibaAcDevice] = await device_manager.get_devices()
+    devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
 
         # _LOGGER.debug("device %s", device)
@@ -156,7 +163,11 @@ class ToshibaPowerSensor(SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
-        return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        return (
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
 
     @property
     def unit_of_measurement(self):
@@ -254,8 +265,15 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
-        if self._device.ac_outdoor_temperature or self._device.ac_outdoor_temperature == 0:
-            return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        if (
+            self._device.ac_outdoor_temperature
+            or self._device.ac_outdoor_temperature == 0
+        ):
+            return (
+                self._device.ac_id
+                and self._device.amqp_api.sas_token
+                and self._device.http_api.access_token
+            )
         else:
             return False
 
@@ -277,7 +295,10 @@ class ToshibaTempSensor(SensorEntity):
     @property
     def state(self) -> float:
         """Return the value of the sensor."""
-        if self._device.ac_outdoor_temperature or self._device.ac_outdoor_temperature == 0:
+        if (
+            self._device.ac_outdoor_temperature
+            or self._device.ac_outdoor_temperature == 0
+        ):
             return self._device.ac_outdoor_temperature
         else:
             return ""

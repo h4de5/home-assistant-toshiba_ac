@@ -1,54 +1,42 @@
 """Platform for climate integration."""
 
 import logging
-from typing import Any, List, Mapping, Optional
+from typing import Any, Mapping, Optional
+
+from toshiba_ac.device import (
+    ToshibaAcDevice,
+    ToshibaAcFanMode,
+    ToshibaAcMeritA,
+    ToshibaAcMode,
+    ToshibaAcPowerSelection,
+    ToshibaAcSelfCleaning,
+    ToshibaAcStatus,
+    ToshibaAcSwingMode,
+)
+from toshiba_ac.utils import pretty_enum_name
+
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_OFF,
     CURRENT_HVAC_COOL,
-    CURRENT_HVAC_HEAT,
     CURRENT_HVAC_DRY,
-    # CURRENT_HVAC_IDLE,
     CURRENT_HVAC_FAN,
-    HVAC_MODE_OFF,
+    CURRENT_HVAC_HEAT,
+    CURRENT_HVAC_OFF,
+    FAN_OFF,
     HVAC_MODE_AUTO,
     HVAC_MODE_COOL,
-    HVAC_MODE_HEAT,
     HVAC_MODE_DRY,
     HVAC_MODE_FAN_ONLY,
-    SUPPORT_TARGET_TEMPERATURE,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
     SUPPORT_FAN_MODE,
-    SUPPORT_SWING_MODE,
     SUPPORT_PRESET_MODE,
-    # SUPPORT_AUX_HEAT,
-    # FAN_AUTO,
-    # FAN_DIFFUSE,
-    FAN_ON,
-    FAN_OFF,
-    # FAN_LOW,
-    # FAN_MEDIUM,
-    # FAN_HIGH,
+    SUPPORT_SWING_MODE,
+    SUPPORT_TARGET_TEMPERATURE,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.util.temperature import convert as convert_temperature
 
-
-# , TEMP_FAHRENHEIT
-# from voluptuous.validators import Switch
 from .const import DOMAIN
-
-# from .toshiba_ac_control.toshiba_ac.fcu_state import ToshibaAcStatus, AcMode, AcFanMode
-# from toshiba_ac.fcu_state import AcStatus, AcMode, AcFanMode
-from toshiba_ac.device import (
-    ToshibaAcDevice,
-    ToshibaAcStatus,
-    ToshibaAcPowerSelection,
-    ToshibaAcSwingMode,
-    ToshibaAcFanMode,
-    ToshibaAcMode,
-    ToshibaAcMeritA,
-    ToshibaAcSelfCleaning,
-)
-from toshiba_ac.utils import pretty_enum_name
 
 try:
     from homeassistant.components.climate import ClimateEntity
@@ -90,7 +78,12 @@ class ToshibaClimate(ClimateEntity):
     # imported above, we can tell HA the features that are supported by this entity.
     # If the supported features were dynamic (ie: different depending on the external
     # device it connected to), then this should be function with an @property decorator.
-    supported_features = SUPPORT_FAN_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_SWING_MODE | SUPPORT_PRESET_MODE
+    supported_features = (
+        SUPPORT_FAN_MODE
+        | SUPPORT_TARGET_TEMPERATURE
+        | SUPPORT_SWING_MODE
+        | SUPPORT_PRESET_MODE
+    )
 
     _device: ToshibaAcDevice = None
 
@@ -210,7 +203,11 @@ class ToshibaClimate(ClimateEntity):
     @property
     def available(self) -> bool:
         """Return True if climate is available."""
-        return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
+        return (
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
 
     # climate properties
 
@@ -248,7 +245,10 @@ class ToshibaClimate(ClimateEntity):
             return
 
         # if hasattr(self._device, "ac_merit_a") and ToshibaAcMeritA.HEATING_8C in self._device.supported.ac_merit_a:
-        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
+        if (
+            hasattr(self._device, "ac_merit_a")
+            and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
+        ):
             # upper limit for target temp
             if set_temperature > 13:
                 set_temperature = 13
@@ -282,7 +282,7 @@ class ToshibaClimate(ClimateEntity):
         return pretty_enum_name(self._device.ac_power_selection)
 
     @property
-    def preset_modes(self) -> Optional[List[str]]:
+    def preset_modes(self) -> Optional[list[str]]:
         """Return a list of available preset modes.
 
         Requires SUPPORT_PRESET_MODE.
@@ -293,7 +293,9 @@ class ToshibaClimate(ClimateEntity):
         """Set new preset mode."""
         _LOGGER.info("Toshiba Climate setting preset_mode: %s", preset_mode)
 
-        feature_list_id = self.get_feature_list_id(list(ToshibaAcPowerSelection), preset_mode)
+        feature_list_id = self.get_feature_list_id(
+            list(ToshibaAcPowerSelection), preset_mode
+        )
         if feature_list_id is not None:
             await self._device.set_ac_power_selection(feature_list_id)
 
@@ -380,7 +382,7 @@ class ToshibaClimate(ClimateEntity):
 
     # FAN MODES
     @property
-    def fan_modes(self) -> Optional[List[str]]:
+    def fan_modes(self) -> Optional[list[str]]:
         """Return the list of available fan modes.
 
         Requires SUPPORT_FAN_MODE.
@@ -408,7 +410,7 @@ class ToshibaClimate(ClimateEntity):
 
     # SWING MODES
     @property
-    def swing_modes(self) -> Optional[List[str]]:
+    def swing_modes(self) -> Optional[list[str]]:
         """Return the list of available swing modes.
 
         Requires SUPPORT_SWING_MODE.
@@ -432,14 +434,20 @@ class ToshibaClimate(ClimateEntity):
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
+        if (
+            hasattr(self._device, "ac_merit_a")
+            and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
+        ):
             return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
+        if (
+            hasattr(self._device, "ac_merit_a")
+            and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
+        ):
             return convert_temperature(13, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
@@ -458,11 +466,13 @@ class ToshibaClimate(ClimateEntity):
             "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
 
-    def get_feature_list(self, feature_list: List[Any]) -> List[Any]:
+    def get_feature_list(self, feature_list: list[Any]) -> list[Any]:
         """Return a list of features supported by the device."""
-        return [pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"]
+        return [
+            pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"
+        ]
 
-    def get_feature_list_id(self, feature_list: List[Any], feature_name: str) -> Any:
+    def get_feature_list_id(self, feature_list: list[Any], feature_name: str) -> Any:
         """Return the enum value of that item with the given name from a feature list."""
         _LOGGER.debug("searching %s for %s", feature_list, feature_name)
 
