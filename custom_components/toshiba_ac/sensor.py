@@ -2,6 +2,7 @@
 
 import logging
 
+from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
 from homeassistant.const import (
     DEVICE_CLASS_ENERGY,
@@ -70,18 +71,26 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         async_add_devices(new_devices)
 
 
-class ToshibaPowerSensor(SensorEntity):
+class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
     """Provides a Toshiba Sensors."""
 
-    # Our dummy class is PUSH, so we tell HA that it should not be polled
-    should_poll = False
-
-    _device: ToshibaAcDevice = None
-    _ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
+    _attr_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_device_class = DEVICE_CLASS_ENERGY
+    _attr_state_class = STATE_CLASS_TOTAL_INCREASING
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
-        self._device = toshiba_device
+        super().__init__(toshiba_device)
+
+        self._ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
+
+        self._attr_unique_id = f"{self._device.ac_unique_id}_sensor"
+        self._attr_name = f"{self._device.name} Power Consumption"
+        self.available = (
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
 
     # default entity properties
 
@@ -107,99 +116,12 @@ class ToshibaPowerSensor(SensorEntity):
         # self._device.remove_callback(self.async_write_ha_state)
         self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
 
-    # A unique_id for this entity with in this domain. This means for example if you
-    # have a sensor on this cover, you must ensure the value returned is unique,
-    # which is done here by appending "_cover". For more information, see:
-    # https://developers.home-assistant.io/docs/entity_registry_index/#unique-id-requirements
-    # Note: This is NOT used to generate the user visible Entity ID used in automations.
-    @property
-    def unique_id(self):
-        """Return Unique ID string."""
-        return f"{self._device.ac_unique_id}_sensor"
-
-    # Information about the devices that is partially visible in the UI.
-    # The most critical thing here is to give this entity a name so it is displayed
-    # as a "device" in the HA UI. This name is used on the Devices overview table,
-    # and the initial screen when the device is added (rather than the entity name
-    # property below). You can then associate other Entities (eg: a battery
-    # sensor) with this device, so it shows more like a unified element in the UI.
-    # For example, an associated battery sensor will be displayed in the right most
-    # column in the Configuration > Devices view for a device.
-    # To associate an entity with this device, the device_info must also return an
-    # identical "identifiers" attribute, but not return a name attribute.
-    # See the sensors.py file for the corresponding example setup.
-    # Additional meta data can also be returned here, including sw_version (displayed
-    # as Firmware), model and manufacturer (displayed as <model> by <manufacturer>)
-    # shown on the device info screen. The Manufacturer and model also have their
-    # respective columns on the Devices overview table. Note: Many of these must be
-    # set when the device is first added, and they are not always automatically
-    # refreshed by HA from it's internal cache.
-    # For more information see:
-    # https://developers.home-assistant.io/docs/device_registry_index/#device-properties
-    @property
-    def device_info(self):
-        """Information about this entity/device."""
-        return {
-            "identifiers": {(DOMAIN, self._device.ac_unique_id)},
-            # If desired, the name for the device could be different to the entity
-            # "name": self.name,
-            "account": self._device.ac_id,
-            "device_id": self._device.device_id,
-            # "sw_version": self._roller.firmware_version,
-            # "model": self._roller.model,
-            "manufacturer": "Toshiba",
-        }
-
-    # This is the name for this *entity*, the "name" attribute from "device_info"
-    # is used as the device name for device screens in the UI. This name is used on
-    # entity screens, and used to build the Entity ID that's used is automations etc.
-    @property
-    def name(self):
-        """Return the name of the device."""
-        return self._device.name + " Power Consumption"
-
-    # This property is important to let HA know if this entity is online or not.
-    # If an entity is offline (return False), the UI will refelect this.
-    @property
-    def available(self) -> bool:
-        """Return True if sensor is available."""
-        return (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return ENERGY_WATT_HOUR
-
-    @property
-    def device_class(self):
-        """Return the class of this device, from component DEVICE_CLASSES."""
-        return DEVICE_CLASS_ENERGY
-
-    @property
-    def state_class(self) -> str:
-        """Return the state class of this entity."""
-        return STATE_CLASS_TOTAL_INCREASING
-
-    # @property
-    # def last_reset(self) -> datetime:
-    #     """Return the time when the sensor was last reset, if any."""
-    #     if self._ac_energy_consumption:
-    #         return self._ac_energy_consumption.since
-    #     else:
-    #         return datetime.now().date()
-
     @property
     def state(self) -> float:
         """Return the value of the sensor."""
         if self._ac_energy_consumption:
             return self._ac_energy_consumption.energy_wh
-        else:
-            # We have to return None so HA won't see this as new cycle
-            return None
+        return None
 
     @property
     def extra_state_attributes(self):
@@ -208,23 +130,20 @@ class ToshibaPowerSensor(SensorEntity):
             return {"last_reset": self._ac_energy_consumption.since}
 
 
-# end class ToshibaPowerSensor
-
-
-class ToshibaTempSensor(SensorEntity):
+class ToshibaTempSensor(ToshibaAcEntity, SensorEntity):
     """Provides a Toshiba Temperature Sensors."""
 
-    # Our dummy class is PUSH, so we tell HA that it should not be polled
-    should_poll = False
-
-    _device: ToshibaAcDevice = None
-    _ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
+    _attr_unit_of_measurement = TEMP_CELSIUS
+    _attr_device_class = DEVICE_CLASS_TEMPERATURE
+    _attr_state_class = STATE_CLASS_MEASUREMENT
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
-        self._device = toshiba_device
+        super().__init__(toshiba_device)
+        self._ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
 
-    # default entity properties
+        self._attr_unique_id = f"{self._device.ac_unique_id}_outdoor_temperature"
+        self._attr_name = f"{self._device.name} Outdoor Temperature"
 
     async def state_changed(self, dev):
         """Call if we need to change the ha state."""
@@ -239,30 +158,6 @@ class ToshibaTempSensor(SensorEntity):
         self._device.on_state_changed_callback.remove(self.state_changed)
 
     @property
-    def unique_id(self):
-        """Return Unique ID string."""
-        return f"{self._device.ac_unique_id}_outdoor_temperature"
-
-    @property
-    def device_info(self):
-        """Information about this entity/device."""
-        return {
-            "identifiers": {(DOMAIN, self._device.ac_unique_id)},
-            # If desired, the name for the device could be different to the entity
-            # "name": self.name,
-            "account": self._device.ac_id,
-            "device_id": self._device.device_id,
-            # "sw_version": self._roller.firmware_version,
-            # "model": self._roller.model,
-            "manufacturer": "Toshiba",
-        }
-
-    @property
-    def name(self):
-        """Return the name of the device."""
-        return self._device.name + " Outdoor Temperature"
-
-    @property
     def available(self) -> bool:
         """Return True if sensor is available."""
         if (
@@ -274,23 +169,7 @@ class ToshibaTempSensor(SensorEntity):
                 and self._device.amqp_api.sas_token
                 and self._device.http_api.access_token
             )
-        else:
-            return False
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-        return TEMP_CELSIUS
-
-    @property
-    def device_class(self):
-        """Return the class of this device, from component DEVICE_CLASSES."""
-        return DEVICE_CLASS_TEMPERATURE
-
-    @property
-    def state_class(self) -> str:
-        """Return the state class of this entity."""
-        return STATE_CLASS_MEASUREMENT
+        return False
 
     @property
     def state(self) -> float:
@@ -300,8 +179,4 @@ class ToshibaTempSensor(SensorEntity):
             or self._device.ac_outdoor_temperature == 0
         ):
             return self._device.ac_outdoor_temperature
-        else:
-            return ""
-
-
-# end class ToshibaTempSensor
+        return None

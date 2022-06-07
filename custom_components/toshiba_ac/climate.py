@@ -15,6 +15,7 @@ from toshiba_ac.device import (
 )
 from toshiba_ac.utils import pretty_enum_name
 
+from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_COOL,
     CURRENT_HVAC_DRY,
@@ -69,29 +70,37 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         async_add_devices(new_devices)
 
 
-class ToshibaClimate(ClimateEntity):
+class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     """Provides a Toshiba climates."""
 
-    # Our dummy class is PUSH, so we tell HA that it should not be polled
-    should_poll = False
-    # The supported features of a cover are done using a bitmask. Using the constants
-    # imported above, we can tell HA the features that are supported by this entity.
-    # If the supported features were dynamic (ie: different depending on the external
-    # device it connected to), then this should be function with an @property decorator.
-    supported_features = (
+    _attr_temperature_unit = TEMP_CELSIUS
+    _attr_supported_features = (
         SUPPORT_FAN_MODE
         | SUPPORT_TARGET_TEMPERATURE
         | SUPPORT_SWING_MODE
         | SUPPORT_PRESET_MODE
     )
 
-    _device: ToshibaAcDevice = None
-
-    # _platform = "climate"
-
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the climate."""
-        self._device = toshiba_device
+        super().__init__(toshiba_device)
+
+        self._attr_unique_id = f"{self._device.ac_unique_id}_climate"
+        self._attr_name = self._device.name
+        self._attr_available = (
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
+        self._attr_current_temperature = self._device.ac_indoor_temperature
+        self._attr_target_temperature = self._device.ac_temperature
+        self._attr_target_temperature_step = 1
+        self._attr_fan_modes = self.get_feature_list(self._device.supported.ac_fan_mode)
+        self._attr_fan_mode = pretty_enum_name(self._device.ac_fan_mode)
+        self._attr_swing_modes = self.get_feature_list(
+            self._device.supported.ac_swing_mode
+        )
+        self._attr_swing_mode = pretty_enum_name(self._device.ac_swing_mode)
 
         # _LOGGER.debug("###########################")
         # _LOGGER.debug(
@@ -147,68 +156,6 @@ class ToshibaClimate(ClimateEntity):
         # self._device.remove_callback(self.async_write_ha_state)
         self._device.on_state_changed_callback.remove(self.state_changed)
 
-    # A unique_id for this entity with in this domain. This means for example if you
-    # have a sensor on this cover, you must ensure the value returned is unique,
-    # which is done here by appending "_cover". For more information, see:
-    # https://developers.home-assistant.io/docs/entity_registry_index/#unique-id-requirements
-    # Note: This is NOT used to generate the user visible Entity ID used in automations.
-    @property
-    def unique_id(self):
-        """Return Unique ID string."""
-        return f"{self._device.ac_unique_id}_climate"
-
-    # Information about the devices that is partially visible in the UI.
-    # The most critical thing here is to give this entity a name so it is displayed
-    # as a "device" in the HA UI. This name is used on the Devices overview table,
-    # and the initial screen when the device is added (rather than the entity name
-    # property below). You can then associate other Entities (eg: a battery
-    # sensor) with this device, so it shows more like a unified element in the UI.
-    # For example, an associated battery sensor will be displayed in the right most
-    # column in the Configuration > Devices view for a device.
-    # To associate an entity with this device, the device_info must also return an
-    # identical "identifiers" attribute, but not return a name attribute.
-    # See the sensors.py file for the corresponding example setup.
-    # Additional meta data can also be returned here, including sw_version (displayed
-    # as Firmware), model and manufacturer (displayed as <model> by <manufacturer>)
-    # shown on the device info screen. The Manufacturer and model also have their
-    # respective columns on the Devices overview table. Note: Many of these must be
-    # set when the device is first added, and they are not always automatically
-    # refreshed by HA from it's internal cache.
-    # For more information see:
-    # https://developers.home-assistant.io/docs/device_registry_index/#device-properties
-    @property
-    def device_info(self):
-        """Information about this entity/device."""
-        return {
-            "identifiers": {(DOMAIN, self._device.ac_unique_id)},
-            # If desired, the name for the device could be different to the entity
-            "name": self.name,
-            "account": self._device.ac_id,
-            "device_id": self._device.device_id,
-            "sw_version": self._device.firmware_version,
-            # "model": self._roller.model,
-            "manufacturer": "Toshiba",
-        }
-
-    # This is the name for this *entity*, the "name" attribute from "device_info"
-    # is used as the device name for device screens in the UI. This name is used on
-    # entity screens, and used to build the Entity ID that's used is automations etc.
-    @property
-    def name(self):
-        """Return the name of the device."""
-        return self._device.name
-
-    # This property is important to let HA know if this entity is online or not.
-    # If an entity is offline (return False), the UI will refelect this.
-    @property
-    def available(self) -> bool:
-        """Return True if climate is available."""
-        return (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
-
     # climate properties
 
     # TEMPERATURE
@@ -217,26 +164,6 @@ class ToshibaClimate(ClimateEntity):
     def is_on(self):
         """Return True if the device is on or completely off."""
         return self._device.ac_status == ToshibaAcStatus.ON
-
-    @property
-    def current_temperature(self):
-        """Return current temperature."""
-        return self._device.ac_indoor_temperature
-
-    @property
-    def target_temperature(self):
-        """Return the temperature we try to reach."""
-        return self._device.ac_temperature
-
-    @property
-    def target_temperature_step(self):
-        """Return the supported step of target temperature."""
-        return 1
-
-    @property
-    def temperature_unit(self):
-        """Return unit of temperature measurement for the system (TEMP_CELSIUS or TEMP_FAHRENHEIT)."""
-        return TEMP_CELSIUS
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
@@ -309,18 +236,15 @@ class ToshibaClimate(ClimateEntity):
 
         if self._device.ac_mode == ToshibaAcMode.AUTO:
             return HVAC_MODE_AUTO
-        elif self._device.ac_mode == ToshibaAcMode.COOL:
+        if self._device.ac_mode == ToshibaAcMode.COOL:
             return HVAC_MODE_COOL
-        elif self._device.ac_mode == ToshibaAcMode.HEAT:
+        if self._device.ac_mode == ToshibaAcMode.HEAT:
             return HVAC_MODE_HEAT
-        elif self._device.ac_mode == ToshibaAcMode.DRY:
+        if self._device.ac_mode == ToshibaAcMode.DRY:
             return HVAC_MODE_DRY
-        elif self._device.ac_mode == ToshibaAcMode.FAN:
+        if self._device.ac_mode == ToshibaAcMode.FAN:
             return HVAC_MODE_FAN_ONLY
-        else:
-            return HVAC_MODE_OFF
-
-    # HVAC MODES
+        return HVAC_MODE_OFF
 
     @property
     def hvac_modes(self):
@@ -349,16 +273,15 @@ class ToshibaClimate(ClimateEntity):
 
         if self._device.ac_mode == ToshibaAcMode.AUTO:
             return CURRENT_HVAC_COOL  # CURRENT_HVAC_IDLE
-        elif self._device.ac_mode == ToshibaAcMode.COOL:
+        if self._device.ac_mode == ToshibaAcMode.COOL:
             return CURRENT_HVAC_COOL
-        elif self._device.ac_mode == ToshibaAcMode.HEAT:
+        if self._device.ac_mode == ToshibaAcMode.HEAT:
             return CURRENT_HVAC_HEAT
-        elif self._device.ac_mode == ToshibaAcMode.DRY:
+        if self._device.ac_mode == ToshibaAcMode.DRY:
             return CURRENT_HVAC_DRY
-        elif self._device.ac_mode == ToshibaAcMode.FAN:
+        if self._device.ac_mode == ToshibaAcMode.FAN:
             return CURRENT_HVAC_FAN
-        else:
-            return CURRENT_HVAC_OFF
+        return CURRENT_HVAC_OFF
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
@@ -380,21 +303,6 @@ class ToshibaClimate(ClimateEntity):
             elif hvac_mode == HVAC_MODE_FAN_ONLY:
                 await self._device.set_ac_mode(ToshibaAcMode.FAN)
 
-    # FAN MODES
-    @property
-    def fan_modes(self) -> Optional[list[str]]:
-        """Return the list of available fan modes.
-
-        Requires SUPPORT_FAN_MODE.
-        """
-        return self.get_feature_list(self._device.supported.ac_fan_mode)
-
-    @property
-    def fan_mode(self):
-        """Return the current fan mode. Requires SUPPORT_FAN_MODE."""
-        # return self._device.ac_fan_mode.name
-        return pretty_enum_name(self._device.ac_fan_mode)
-
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
         _LOGGER.info("Toshiba Climate setting fan_mode: %s", fan_mode)
@@ -407,23 +315,6 @@ class ToshibaClimate(ClimateEntity):
             feature_list_id = self.get_feature_list_id(list(ToshibaAcFanMode), fan_mode)
             if feature_list_id is not None:
                 await self._device.set_ac_fan_mode(feature_list_id)
-
-    # SWING MODES
-    @property
-    def swing_modes(self) -> Optional[list[str]]:
-        """Return the list of available swing modes.
-
-        Requires SUPPORT_SWING_MODE.
-        """
-        return self.get_feature_list(self._device.supported.ac_swing_mode)
-
-    @property
-    def swing_mode(self) -> Optional[str]:
-        """Return the swing setting.
-
-        Requires SUPPORT_SWING_MODE.
-        """
-        return pretty_enum_name(self._device.ac_swing_mode)
 
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
@@ -481,8 +372,4 @@ class ToshibaClimate(ClimateEntity):
 
         if len(feature_list) > 0:
             return feature_list[0]
-        else:
-            return None
-
-
-# end class ToshibaClimate
+        return None
