@@ -259,7 +259,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         else:
             if not self.is_on:
                 await self._device.set_ac_status(ToshibaAcStatus.ON)
-            await self._device.set_ac_mode(HVAC_MODE_TO_TOSHIBA(hvac_mode))
+            await self._device.set_ac_mode(HVAC_MODE_TO_TOSHIBA[hvac_mode])
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
