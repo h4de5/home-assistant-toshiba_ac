@@ -17,22 +17,13 @@ from toshiba_ac.utils import pretty_enum_name
 
 from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_COOL,
-    CURRENT_HVAC_DRY,
-    CURRENT_HVAC_FAN,
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_OFF,
     FAN_OFF,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_COOL,
-    HVAC_MODE_DRY,
-    HVAC_MODE_FAN_ONLY,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
     SUPPORT_FAN_MODE,
     SUPPORT_PRESET_MODE,
     SUPPORT_SWING_MODE,
     SUPPORT_TARGET_TEMPERATURE,
+    HVACAction,
+    HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.util.temperature import convert as convert_temperature
@@ -47,11 +38,11 @@ except ImportError:
 _LOGGER = logging.getLogger(__name__)
 
 TOSHIBA_TO_HVAC_MODE = {
-    ToshibaAcMode.AUTO: HVAC_MODE_AUTO,
-    ToshibaAcMode.COOL: HVAC_MODE_COOL,
-    ToshibaAcMode.HEAT: HVAC_MODE_HEAT,
-    ToshibaAcMode.DRY: HVAC_MODE_DRY,
-    ToshibaAcMode.FAN: HVAC_MODE_FAN_ONLY,
+    ToshibaAcMode.AUTO: HVACMode.AUTO,
+    ToshibaAcMode.COOL: HVACMode.COOL,
+    ToshibaAcMode.HEAT: HVACMode.HEAT,
+    ToshibaAcMode.DRY: HVACMode.DRY,
+    ToshibaAcMode.FAN: HVACMode.FAN_ONLY,
 }
 
 HVAC_MODE_TO_TOSHIBA = {v: k for k, v in TOSHIBA_TO_HVAC_MODE.items()}
@@ -225,45 +216,45 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             await self._device.set_ac_power_selection(feature_list_id)
 
     @property
-    def hvac_mode(self):
-        """Return target operation (e.g.heat, cool, auto, off). Used to determine state."""
+    def hvac_mode(self) -> HVACMode | str | None:
+        """Return hvac operation ie. heat, cool mode."""
         if not self.is_on:
-            return HVAC_MODE_OFF
+            return HVACMode.OFF
 
         return TOSHIBA_TO_HVAC_MODE[self._device.ac_mode]
 
     @property
-    def hvac_modes(self):
+    def hvac_modes(self) -> list[HVACMode] | list[str]:
         """Return the list of available hvac operation modes."""
-        available_modes = [HVAC_MODE_OFF]
+        available_modes = [HVACMode.OFF]
         for toshiba_mode, hvac_mode in TOSHIBA_TO_HVAC_MODE.items():
             if toshiba_mode in self._device.supported.ac_mode:
                 available_modes.append(hvac_mode)
         return available_modes
 
     @property
-    def hvac_action(self):
-        """Return current HVAC action (heating, cooling, idle, off)."""
+    def hvac_action(self) -> HVACAction | str | None:
+        """Return the current running hvac operation if supported."""
         if not self.is_on:
-            return CURRENT_HVAC_OFF
+            return HVACAction.OFF
 
         if self._device.ac_mode == ToshibaAcMode.AUTO:
-            return CURRENT_HVAC_COOL  # CURRENT_HVAC_IDLE
+            return HVACAction.COOLING  # CURRENT_HVAC_IDLE
         if self._device.ac_mode == ToshibaAcMode.COOL:
-            return CURRENT_HVAC_COOL
+            return HVACAction.COOLING
         if self._device.ac_mode == ToshibaAcMode.HEAT:
-            return CURRENT_HVAC_HEAT
+            return HVACAction.HEATING
         if self._device.ac_mode == ToshibaAcMode.DRY:
-            return CURRENT_HVAC_DRY
+            return HVACAction.DRYING
         if self._device.ac_mode == ToshibaAcMode.FAN:
-            return CURRENT_HVAC_FAN
-        return CURRENT_HVAC_OFF
+            return HVACAction.FAN
+        return HVACAction.OFF
 
-    async def async_set_hvac_mode(self, hvac_mode):
+    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
         _LOGGER.info("Toshiba Climate setting hvac_mode: %s", hvac_mode)
 
-        if hvac_mode == HVAC_MODE_OFF:
+        if hvac_mode == HVACMode.OFF:
             await self._device.set_ac_status(ToshibaAcStatus.OFF)
         else:
             if not self.is_on:
