@@ -46,18 +46,20 @@ except ImportError:
 
 _LOGGER = logging.getLogger(__name__)
 
+TOSHIBA_TO_HVAC_MODE = {
+    ToshibaAcMode.AUTO: HVAC_MODE_AUTO,
+    ToshibaAcMode.COOL: HVAC_MODE_COOL,
+    ToshibaAcMode.HEAT: HVAC_MODE_HEAT,
+    ToshibaAcMode.DRY: HVAC_MODE_DRY,
+    ToshibaAcMode.FAN: HVAC_MODE_FAN_ONLY,
+}
 
-# This function is called as part of the __init__.async_setup_entry (via the
-# hass.config_entries.async_forward_entry_setup call)
+HVAC_MODE_TO_TOSHIBA = {v: k for k, v in TOSHIBA_TO_HVAC_MODE.items()}
+
+
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add climate for passed config_entry in HA."""
-    # The hub is loaded from the associated hass.data entry that was created in the
-    # __init__.async_setup_entry function
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
-
-    # The next few lines find all of the entities that will need to be added
-    # to HA. Note these are all added to a list, so async_add_devices can be
-    # called just once.
     new_devices = []
 
     devices = await device_manager.get_devices()
@@ -156,10 +158,6 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         # self._device.remove_callback(self.async_write_ha_state)
         self._device.on_state_changed_callback.remove(self.state_changed)
 
-    # climate properties
-
-    # TEMPERATURE
-
     @property
     def is_on(self):
         """Return True if the device is on or completely off."""
@@ -226,43 +224,21 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         if feature_list_id is not None:
             await self._device.set_ac_power_selection(feature_list_id)
 
-    # AC MODES
-
     @property
     def hvac_mode(self):
         """Return target operation (e.g.heat, cool, auto, off). Used to determine state."""
         if not self.is_on:
             return HVAC_MODE_OFF
 
-        if self._device.ac_mode == ToshibaAcMode.AUTO:
-            return HVAC_MODE_AUTO
-        if self._device.ac_mode == ToshibaAcMode.COOL:
-            return HVAC_MODE_COOL
-        if self._device.ac_mode == ToshibaAcMode.HEAT:
-            return HVAC_MODE_HEAT
-        if self._device.ac_mode == ToshibaAcMode.DRY:
-            return HVAC_MODE_DRY
-        if self._device.ac_mode == ToshibaAcMode.FAN:
-            return HVAC_MODE_FAN_ONLY
-        return HVAC_MODE_OFF
+        return TOSHIBA_TO_HVAC_MODE[self._device.ac_mode]
 
     @property
     def hvac_modes(self):
-        """List of available operation modes. See below."""
-        # button for auto is still there, to clear manual mode, but will not change highlighted icon
-        # return [e.lower() for e in self.get_feature_list(self._device.supported.ac_mode)]
+        """Return the list of available hvac operation modes."""
         available_modes = [HVAC_MODE_OFF]
-        if ToshibaAcMode.AUTO in self._device.supported.ac_mode:
-            available_modes.append(HVAC_MODE_AUTO)
-        if ToshibaAcMode.COOL in self._device.supported.ac_mode:
-            available_modes.append(HVAC_MODE_COOL)
-        if ToshibaAcMode.DRY in self._device.supported.ac_mode:
-            available_modes.append(HVAC_MODE_DRY)
-        if ToshibaAcMode.FAN in self._device.supported.ac_mode:
-            available_modes.append(HVAC_MODE_FAN_ONLY)
-        if ToshibaAcMode.HEAT in self._device.supported.ac_mode:
-            available_modes.append(HVAC_MODE_HEAT)
-
+        for toshiba_mode, hvac_mode in TOSHIBA_TO_HVAC_MODE.items():
+            if toshiba_mode in self._device.supported.ac_mode:
+                available_modes.append(hvac_mode)
         return available_modes
 
     @property
@@ -292,16 +268,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         else:
             if not self.is_on:
                 await self._device.set_ac_status(ToshibaAcStatus.ON)
-            if hvac_mode == HVAC_MODE_AUTO:
-                await self._device.set_ac_mode(ToshibaAcMode.AUTO)
-            elif hvac_mode == HVAC_MODE_COOL:
-                await self._device.set_ac_mode(ToshibaAcMode.COOL)
-            elif hvac_mode == HVAC_MODE_HEAT:
-                await self._device.set_ac_mode(ToshibaAcMode.HEAT)
-            elif hvac_mode == HVAC_MODE_DRY:
-                await self._device.set_ac_mode(ToshibaAcMode.DRY)
-            elif hvac_mode == HVAC_MODE_FAN_ONLY:
-                await self._device.set_ac_mode(ToshibaAcMode.FAN)
+            await self._device.set_ac_mode(HVAC_MODE_TO_TOSHIBA(hvac_mode))
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
