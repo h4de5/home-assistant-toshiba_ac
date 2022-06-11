@@ -18,10 +18,7 @@ from toshiba_ac.utils import pretty_enum_name
 from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.climate.const import (
     FAN_OFF,
-    SUPPORT_FAN_MODE,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_SWING_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
+    ClimateEntityFeature,
     HVACAction,
     HVACMode,
 )
@@ -68,10 +65,10 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
     _attr_temperature_unit = TEMP_CELSIUS
     _attr_supported_features = (
-        SUPPORT_FAN_MODE
-        | SUPPORT_TARGET_TEMPERATURE
-        | SUPPORT_SWING_MODE
-        | SUPPORT_PRESET_MODE
+        ClimateEntityFeature.FAN_MODE
+        | ClimateEntityFeature.TARGET_TEMPERATURE
+        | ClimateEntityFeature.SWING_MODE
+        | ClimateEntityFeature.PRESET_MODE
     )
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
