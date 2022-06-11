@@ -16,6 +16,7 @@ from toshiba_ac.device import (
 from toshiba_ac.utils import pretty_enum_name
 
 from custom_components.toshiba_ac.entity import ToshibaAcEntity
+from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_OFF,
     ClimateEntityFeature,
@@ -26,11 +27,6 @@ from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
 from homeassistant.util.temperature import convert as convert_temperature
 
 from .const import DOMAIN
-
-try:
-    from homeassistant.components.climate import ClimateEntity
-except ImportError:
-    from homeassistant.components.climate import ClimateDevice as ClimateEntity
 
 _LOGGER = logging.getLogger(__name__)
 
