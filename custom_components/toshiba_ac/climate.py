@@ -1,7 +1,8 @@
 """Platform for climate integration."""
+from __future__ import annotations
 
 import logging
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from toshiba_ac.device import (
     ToshibaAcDevice,
@@ -177,7 +178,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     # PRESET MODE / POWER SETTING
 
     @property
-    def preset_mode(self) -> Optional[str]:
+    def preset_mode(self) -> str | None:
         """Return the current preset mode, e.g., home, away, temp.
 
         Requires SUPPORT_PRESET_MODE.
@@ -191,7 +192,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         return pretty_enum_name(self._device.ac_power_selection)
 
     @property
-    def preset_modes(self) -> Optional[list[str]]:
+    def preset_modes(self) -> list[str] | None:
         """Return a list of available preset modes.
 
         Requires SUPPORT_PRESET_MODE.
