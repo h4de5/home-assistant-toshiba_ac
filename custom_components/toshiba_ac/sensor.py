@@ -1,29 +1,19 @@
 """Platform for sensor integration."""
+from __future__ import annotations
 
+from datetime import date, datetime
 import logging
 
-from custom_components.toshiba_ac.entity import ToshibaAcEntity
-from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
-from homeassistant.const import (
-    DEVICE_CLASS_ENERGY,
-    DEVICE_CLASS_TEMPERATURE,
-    ENERGY_WATT_HOUR,
-    TEMP_CELSIUS,
-)
-
-try:
-    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
-except ImportError:
-    from homeassistant.components.sensor import (
-        STATE_CLASS_MEASUREMENT as STATE_CLASS_TOTAL_INCREASING,
-    )
-
-try:
-    from homeassistant.components.sensor import SensorEntity
-except ImportError:
-    from homeassistant.helpers.entity import Entity as SensorEntity
-
 from toshiba_ac.device import ToshibaAcDevice, ToshibaAcDeviceEnergyConsumption
+
+from custom_components.toshiba_ac.entity import ToshibaAcEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.const import ENERGY_WATT_HOUR, TEMP_CELSIUS
+from homeassistant.helpers.typing import StateType
 
 from .const import DOMAIN
 
@@ -42,7 +32,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     # to HA. Note these are all added to a list, so async_add_devices can be
     # called just once.
     new_devices = []
-    outdoor_done = False
 
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
@@ -60,10 +49,8 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         # We cannot check for device.ac_outdoor_temperature not being None
         # as it will report None when outdoor unit is off
         # i.e. when AC is in Fan mode or Off
-        if not outdoor_done:
-            sensor_entity = ToshibaTempSensor(device)
-            new_devices.append(sensor_entity)
-            outdoor_done = True
+        sensor_entity = ToshibaTempSensor(device)
+        new_devices.append(sensor_entity)
 
     # If we have any new devices, add them
     if new_devices:
@@ -74,9 +61,9 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
     """Provides a Toshiba Sensors."""
 
-    _attr_unit_of_measurement = ENERGY_WATT_HOUR
-    _attr_device_class = DEVICE_CLASS_ENERGY
-    _attr_state_class = STATE_CLASS_TOTAL_INCREASING
+    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
@@ -117,8 +104,8 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
         self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
 
     @property
-    def state(self) -> float:
-        """Return the value of the sensor."""
+    def native_value(self) -> StateType | date | datetime:
+        """Return the value reported by the sensor."""
         if self._ac_energy_consumption:
             return self._ac_energy_consumption.energy_wh
         return None
@@ -133,9 +120,9 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
 class ToshibaTempSensor(ToshibaAcEntity, SensorEntity):
     """Provides a Toshiba Temperature Sensors."""
 
-    _attr_unit_of_measurement = TEMP_CELSIUS
-    _attr_device_class = DEVICE_CLASS_TEMPERATURE
-    _attr_state_class = STATE_CLASS_MEASUREMENT
+    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
@@ -172,11 +159,6 @@ class ToshibaTempSensor(ToshibaAcEntity, SensorEntity):
         return False
 
     @property
-    def state(self) -> float:
-        """Return the value of the sensor."""
-        if (
-            self._device.ac_outdoor_temperature
-            or self._device.ac_outdoor_temperature == 0
-        ):
-            return self._device.ac_outdoor_temperature
-        return None
+    def native_value(self) -> StateType | date | datetime:
+        """Return the value reported by the sensor."""
+        return self._device.ac_outdoor_temperature
