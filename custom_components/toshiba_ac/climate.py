@@ -74,18 +74,11 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
         self._attr_unique_id = f"{self._device.ac_unique_id}_climate"
         self._attr_name = self._device.name
-        self._attr_available = (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
         self._attr_target_temperature_step = 1
         self._attr_fan_modes = self.get_feature_list(self._device.supported.ac_fan_mode)
         self._attr_swing_modes = self.get_feature_list(
             self._device.supported.ac_swing_mode
         )
-        self._attr_swing_mode = pretty_enum_name(self._device.ac_swing_mode)
-
         # _LOGGER.debug("###########################")
         # _LOGGER.debug(
         #     "Supported features: ac_mode %s, ac_swing_mode %s, ac_merit_b %s, ac_merit_a %s, ac_energy_report %s",
@@ -139,6 +132,15 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         # The opposite of async_added_to_hass. Remove any registered call backs here.
         # self._device.remove_callback(self.async_write_ha_state)
         self._device.on_state_changed_callback.remove(self.state_changed)
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return (
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
 
     @property
     def is_on(self):
@@ -275,6 +277,11 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         feature_list_id = self.get_feature_list_id(list(ToshibaAcSwingMode), swing_mode)
         if feature_list_id is not None:
             await self._device.set_ac_swing_mode(feature_list_id)
+
+    @property
+    def swing_mode(self) -> str | None:
+        """Return the swing setting."""
+        return pretty_enum_name(self._device.ac_swing_mode)
 
     @property
     def current_temperature(self) -> float | None:
