@@ -73,11 +73,6 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
 
         self._attr_unique_id = f"{self._device.ac_unique_id}_sensor"
         self._attr_name = f"{self._device.name} Power Consumption"
-        self.available = (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
 
     # default entity properties
 
@@ -102,6 +97,15 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
         # The opposite of async_added_to_hass. Remove any registered call backs here.
         # self._device.remove_callback(self.async_write_ha_state)
         self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return (
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
 
     @property
     def native_value(self) -> StateType | date | datetime:
