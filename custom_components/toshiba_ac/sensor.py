@@ -1,7 +1,6 @@
 """Platform for sensor integration."""
 from __future__ import annotations
 
-
 from datetime import date, datetime
 import logging
 
