@@ -79,8 +79,6 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         self._attr_swing_modes = self.get_feature_list(
             self._device.supported.ac_swing_mode
         )
-        self._attr_swing_mode = pretty_enum_name(self._device.ac_swing_mode)
-
         # _LOGGER.debug("###########################")
         # _LOGGER.debug(
         #     "Supported features: ac_mode %s, ac_swing_mode %s, ac_merit_b %s, ac_merit_a %s, ac_energy_report %s",
@@ -279,6 +277,11 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         feature_list_id = self.get_feature_list_id(list(ToshibaAcSwingMode), swing_mode)
         if feature_list_id is not None:
             await self._device.set_ac_swing_mode(feature_list_id)
+
+    @property
+    def swing_mode(self) -> str | None:
+        """Return the swing setting."""
+        return pretty_enum_name(self._device.ac_swing_mode)
 
     @property
     def current_temperature(self) -> float | None:
