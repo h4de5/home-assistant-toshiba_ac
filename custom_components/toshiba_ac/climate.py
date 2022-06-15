@@ -79,11 +79,8 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             and self._device.amqp_api.sas_token
             and self._device.http_api.access_token
         )
-        self._attr_current_temperature = self._device.ac_indoor_temperature
-        self._attr_target_temperature = self._device.ac_temperature
         self._attr_target_temperature_step = 1
         self._attr_fan_modes = self.get_feature_list(self._device.supported.ac_fan_mode)
-        self._attr_fan_mode = pretty_enum_name(self._device.ac_fan_mode)
         self._attr_swing_modes = self.get_feature_list(
             self._device.supported.ac_swing_mode
         )
@@ -268,11 +265,26 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             if feature_list_id is not None:
                 await self._device.set_ac_fan_mode(feature_list_id)
 
+    @property
+    def fan_mode(self) -> str | None:
+        """Return the fan setting."""
+        return pretty_enum_name(self._device.ac_fan_mode)
+
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
         feature_list_id = self.get_feature_list_id(list(ToshibaAcSwingMode), swing_mode)
         if feature_list_id is not None:
             await self._device.set_ac_swing_mode(feature_list_id)
+
+    @property
+    def current_temperature(self) -> float | None:
+        """Return the current temperature."""
+        return self._device.ac_indoor_temperature
+
+    @property
+    def target_temperature(self) -> float | None:
+        """Return the temperature we try to reach."""
+        return self._device.ac_temperature
 
     @property
     def min_temp(self) -> float:
