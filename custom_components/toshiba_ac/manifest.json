@@ -10,6 +10,6 @@
 	"homekit": {},
 	"dependencies": [],
 	"codeowners": ["@h4de5"],
-	"version": "2022.6.15",
+	"version": "2022.6.16",
 	"iot_class": "cloud_push"
 }
