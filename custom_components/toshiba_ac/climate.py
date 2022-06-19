@@ -76,9 +76,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         self._attr_name = self._device.name
         self._attr_target_temperature_step = 1
         self._attr_fan_modes = self.get_feature_list(self._device.supported.ac_fan_mode)
-        self._attr_swing_modes = self.get_feature_list(
-            self._device.supported.ac_swing_mode
-        )
+        self._attr_swing_modes = self.get_feature_list(self._device.supported.ac_swing_mode)
         # _LOGGER.debug("###########################")
         # _LOGGER.debug(
         #     "Supported features: ac_mode %s, ac_swing_mode %s, ac_merit_b %s, ac_merit_a %s, ac_energy_report %s",
@@ -136,11 +134,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
+        return self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token
 
     @property
     def is_on(self):
@@ -154,10 +148,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             return
 
         # if hasattr(self._device, "ac_merit_a") and ToshibaAcMeritA.HEATING_8C in self._device.supported.ac_merit_a:
-        if (
-            hasattr(self._device, "ac_merit_a")
-            and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
-        ):
+        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
             # upper limit for target temp
             if set_temperature > 13:
                 set_temperature = 13
@@ -202,9 +193,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         """Set new preset mode."""
         _LOGGER.info("Toshiba Climate setting preset_mode: %s", preset_mode)
 
-        feature_list_id = self.get_feature_list_id(
-            list(ToshibaAcPowerSelection), preset_mode
-        )
+        feature_list_id = self.get_feature_list_id(list(ToshibaAcPowerSelection), preset_mode)
         if feature_list_id is not None:
             await self._device.set_ac_power_selection(feature_list_id)
 
@@ -228,20 +217,26 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     @property
     def hvac_action(self) -> HVACAction | str | None:
         """Return the current running hvac operation if supported."""
+        # See: https://developers.home-assistant.io/docs/core/entity/climate/#hvac-action
         if not self.is_on:
             return HVACAction.OFF
 
         if self._device.ac_mode == ToshibaAcMode.AUTO:
-            return HVACAction.COOLING  # CURRENT_HVAC_IDLE
+            if self.target_temperature < self.current_temperature:
+                return HVACAction.COOLING
+            elif self.target_temperature > self.current_temperature:
+                return HVACAction.HEATING
         if self._device.ac_mode == ToshibaAcMode.COOL:
-            return HVACAction.COOLING
+            if self.target_temperature < self.current_temperature:
+                return HVACAction.COOLING
         if self._device.ac_mode == ToshibaAcMode.HEAT:
-            return HVACAction.HEATING
+            if self.target_temperature > self.current_temperature:
+                return HVACAction.HEATING
         if self._device.ac_mode == ToshibaAcMode.DRY:
             return HVACAction.DRYING
         if self._device.ac_mode == ToshibaAcMode.FAN:
             return HVACAction.FAN
-        return HVACAction.OFF
+        return HVACAction.IDLE
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
@@ -296,20 +291,14 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     @property
     def min_temp(self) -> float:
         """Return the minimum temperature."""
-        if (
-            hasattr(self._device, "ac_merit_a")
-            and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
-        ):
+        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
             return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
 
     @property
     def max_temp(self) -> float:
         """Return the maximum temperature."""
-        if (
-            hasattr(self._device, "ac_merit_a")
-            and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
-        ):
+        if hasattr(self._device, "ac_merit_a") and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C:
             return convert_temperature(13, TEMP_CELSIUS, self.temperature_unit)
         return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
 
@@ -330,9 +319,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
     def get_feature_list(self, feature_list: list[Any]) -> list[Any]:
         """Return a list of features supported by the device."""
-        return [
-            pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"
-        ]
+        return [pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"]
 
     def get_feature_list_id(self, feature_list: list[Any], feature_name: str) -> Any:
         """Return the enum value of that item with the given name from a feature list."""
