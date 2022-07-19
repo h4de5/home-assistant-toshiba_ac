@@ -1,5 +1,7 @@
 default_config:
 
+debugpy:
+
 logger:
   default: error
   logs:

@@ -6,7 +6,7 @@ import random
 from typing import Any
 
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
-from toshiba_ac.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
+from toshiba_ac.utils.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
 import voluptuous as vol
 
 from homeassistant import config_entries
@@ -34,16 +34,16 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     device_id = f"{random.getrandbits(64):016x}"
 
     device_manager = ToshibaAcDeviceManager(
-        hass.loop, data["username"], data["password"], device_id
+        data["username"], data["password"], device_id
     )
 
     try:
         sas_token = await device_manager.connect()
 
-    except ToshibaAcHttpApiAuthError:
-        raise InvalidAuth
-    except ToshibaAcHttpApiError:
-        raise CannotConnect
+    except ToshibaAcHttpApiAuthError as ex:
+        raise InvalidAuth from ex
+    except ToshibaAcHttpApiError as ex:
+        raise CannotConnect from ex
     finally:
         await device_manager.shutdown()
 
