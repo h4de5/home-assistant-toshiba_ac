@@ -21,7 +21,6 @@ from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_OFF,
     ClimateEntityFeature,
-    HVACAction,
     HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
@@ -224,30 +223,6 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             if toshiba_mode in self._device.supported.ac_mode:
                 available_modes.append(hvac_mode)
         return available_modes
-
-    @property
-    def hvac_action(self) -> HVACAction | str | None:
-        """Return the current running hvac operation if supported."""
-        # See: https://developers.home-assistant.io/docs/core/entity/climate/#hvac-action
-        if not self.is_on:
-            return HVACAction.OFF
-
-        if self._device.ac_mode == ToshibaAcMode.AUTO:
-            if self.target_temperature < self.current_temperature:
-                return HVACAction.COOLING
-            elif self.target_temperature > self.current_temperature:
-                return HVACAction.HEATING
-        if self._device.ac_mode == ToshibaAcMode.COOL:
-            if self.target_temperature < self.current_temperature:
-                return HVACAction.COOLING
-        if self._device.ac_mode == ToshibaAcMode.HEAT:
-            if self.target_temperature > self.current_temperature:
-                return HVACAction.HEATING
-        if self._device.ac_mode == ToshibaAcMode.DRY:
-            return HVACAction.DRYING
-        if self._device.ac_mode == ToshibaAcMode.FAN:
-            return HVACAction.FAN
-        return HVACAction.IDLE
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
