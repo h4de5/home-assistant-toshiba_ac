@@ -16,17 +16,16 @@ from toshiba_ac.device import (
 )
 from toshiba_ac.utils import pretty_enum_name
 
-from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_OFF,
     ClimateEntityFeature,
     HVACMode,
 )
-from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
-from homeassistant.util.temperature import convert as convert_temperature
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 
 from .const import DOMAIN
+from .entity import ToshibaAcEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,7 +58,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     """Provides a Toshiba climates."""
 
-    _attr_temperature_unit = TEMP_CELSIUS
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_supported_features = (
         ClimateEntityFeature.FAN_MODE
         | ClimateEntityFeature.TARGET_TEMPERATURE
@@ -148,9 +147,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
-        set_temperature = kwargs.get(ATTR_TEMPERATURE)
-        if set_temperature is None:
-            return
+        set_temperature = kwargs[ATTR_TEMPERATURE]
 
         # if hasattr(self._device, "ac_merit_a") and ToshibaAcMeritA.HEATING_8C in self._device.supported.ac_merit_a:
         if (
@@ -281,8 +278,8 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             hasattr(self._device, "ac_merit_a")
             and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
         ):
-            return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
-        return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
+            return 5
+        return 17
 
     @property
     def max_temp(self) -> float:
@@ -291,8 +288,8 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             hasattr(self._device, "ac_merit_a")
             and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
         ):
-            return convert_temperature(13, TEMP_CELSIUS, self.temperature_unit)
-        return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
+            return 13
+        return 30
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any]:
