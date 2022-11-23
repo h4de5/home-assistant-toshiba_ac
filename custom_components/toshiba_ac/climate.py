@@ -147,9 +147,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
-        set_temperature = kwargs.get(ATTR_TEMPERATURE)
-        if set_temperature is None:
-            return
+        set_temperature = kwargs[ATTR_TEMPERATURE]
 
         # if hasattr(self._device, "ac_merit_a") and ToshibaAcMeritA.HEATING_8C in self._device.supported.ac_merit_a:
         if (
