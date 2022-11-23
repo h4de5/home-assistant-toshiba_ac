@@ -22,7 +22,7 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
 )
-from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
+from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 
 from .const import DOMAIN
 from .entity import ToshibaAcEntity
@@ -58,7 +58,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
     """Provides a Toshiba climates."""
 
-    _attr_temperature_unit = TEMP_CELSIUS
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_supported_features = (
         ClimateEntityFeature.FAN_MODE
         | ClimateEntityFeature.TARGET_TEMPERATURE
