@@ -16,7 +16,6 @@ from toshiba_ac.device import (
 )
 from toshiba_ac.utils import pretty_enum_name
 
-from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_OFF,
@@ -24,9 +23,9 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, TEMP_CELSIUS
-from homeassistant.util.temperature import convert as convert_temperature
 
 from .const import DOMAIN
+from .entity import ToshibaAcEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -281,8 +280,8 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             hasattr(self._device, "ac_merit_a")
             and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
         ):
-            return convert_temperature(5, TEMP_CELSIUS, self.temperature_unit)
-        return convert_temperature(17, TEMP_CELSIUS, self.temperature_unit)
+            return 5
+        return 17
 
     @property
     def max_temp(self) -> float:
@@ -291,8 +290,8 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             hasattr(self._device, "ac_merit_a")
             and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
         ):
-            return convert_temperature(13, TEMP_CELSIUS, self.temperature_unit)
-        return convert_temperature(30, TEMP_CELSIUS, self.temperature_unit)
+            return 13
+        return 30
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any]:
