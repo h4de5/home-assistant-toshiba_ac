@@ -4,12 +4,12 @@
   "config_flow": true,
   "documentation": "https://github.com/h4de5/home-assistant-toshiba_ac",
   "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
-  "requirements": ["toshiba-ac==0.3.1"],
+  "requirements": ["toshiba-ac==0.3.2"],
   "ssdp": [],
   "zeroconf": [],
   "homekit": {},
   "dependencies": [],
   "codeowners": ["@h4de5"],
-  "version": "2023.1.0",
+  "version": "2023.3.0",
   "iot_class": "cloud_push"
 }
