@@ -1,4 +1,4 @@
-"""Platform for sensor integration."""
+"""Switch platform for Toshiba AC integration."""
 from __future__ import annotations
 
 import logging
@@ -7,6 +7,7 @@ from typing import Any
 from toshiba_ac.device import (
     ToshibaAcDevice,
     ToshibaAcStatus,
+    ToshibaAcMeritA,
     ToshibaAcAirPureIon,
 )
 
@@ -35,6 +36,12 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         else:
             _LOGGER.info("AC device does not support air purification")
 
+        if ToshibaAcMeritA.HEATING_8C in device.supported.ac_merit_a:
+            switch_entity = Toshiba8CModeSwitch(device)
+            new_devices.append(switch_entity)
+        else:
+            _LOGGER.info("AC device does not support 8 °C mode")
+
     if new_devices:
         _LOGGER.info("Adding %d %s", len(new_devices), "switches")
         async_add_devices(new_devices)
@@ -53,6 +60,11 @@ class ToshibaAirPureIonSwitch(ToshibaAcEntity, SwitchEntity):
         self._attr_name = f"{self._device.name} Air Purifier"
         self._update_state()
 
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return super().available and self._device.ac_status == ToshibaAcStatus.ON
+
     async def async_added_to_hass(self):
         """Run when this Entity has been added to HA."""
         self._device.on_state_changed_callback.add(self._state_changed)
@@ -61,10 +73,10 @@ class ToshibaAirPureIonSwitch(ToshibaAcEntity, SwitchEntity):
         """Entity being removed from hass."""
         self._device.on_state_changed_callback.remove(self._state_changed)
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
+    async def async_turn_off(self, **kwargs: Any):
         await self._device.set_ac_air_pure_ion(ToshibaAcAirPureIon.OFF)
 
-    async def async_turn_on(self, **kwargs: Any) -> None:
+    async def async_turn_on(self, **kwargs: Any):
         await self._device.set_ac_air_pure_ion(ToshibaAcAirPureIon.ON)
 
     async def _state_changed(self, _dev: ToshibaAcDevice):
@@ -76,12 +88,43 @@ class ToshibaAirPureIonSwitch(ToshibaAcEntity, SwitchEntity):
         self._attr_is_on = self._device.ac_air_pure_ion == ToshibaAcAirPureIon.ON
         self._attr_icon = "mdi:air-purifier" if self.is_on else "mdi:air-purifier-off"
 
+
+class Toshiba8CModeSwitch(ToshibaAcEntity, SwitchEntity):
+    """Provides a switch to toggle the 8 °C mode."""
+
+    _attr_device_class = SwitchDeviceClass.SWITCH
+    _attr_icon = "mdi:snowflake-melt"
+
+    def __init__(self, toshiba_device: ToshibaAcDevice):
+        super().__init__(toshiba_device)
+        self._attr_unique_id = f"{self._device.ac_unique_id}_8C_mode"
+        self._attr_name = f"{self._device.name} 8 °C Mode"
+        self._update_state()
+
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        return bool(
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
+        return (
+            super().available
             and self._device.ac_status == ToshibaAcStatus.ON
+            and ToshibaAcMeritA.HEATING_8C
+            in self._device.supported.for_ac_mode(self._device.ac_mode).ac_merit_a
         )
+
+    async def async_added_to_hass(self):
+        self._device.on_state_changed_callback.add(self._state_changed)
+
+    async def async_will_remove_from_hass(self):
+        self._device.on_state_changed_callback.remove(self._state_changed)
+
+    async def async_turn_off(self, **kwargs: Any):
+        await self._device.set_ac_merit_a(ToshibaAcMeritA.OFF)
+
+    async def async_turn_on(self, **kwargs: Any):
+        await self._device.set_ac_merit_a(ToshibaAcMeritA.HEATING_8C)
+
+    async def _state_changed(self, _dev: ToshibaAcDevice):
+        self._update_state()
+        self.async_write_ha_state()
+
+    def _update_state(self):
+        self._attr_is_on = self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
