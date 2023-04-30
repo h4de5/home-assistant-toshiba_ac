@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-PLATFORMS = ["climate", "sensor", "switch"]
+PLATFORMS = ["climate", "select", "sensor", "switch"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict):

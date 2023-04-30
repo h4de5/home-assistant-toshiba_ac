@@ -127,6 +127,12 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
                     entity_description.key,
                 )
 
+        if ToshibaAcMeritA.HEATING_8C in device.supported.ac_merit_a:
+            switch_entity = Toshiba8CModeSwitch(device)
+            new_entites.append(switch_entity)
+        else:
+            _LOGGER.info("AC device does not support 8 °C mode")
+
     if new_entites:
         _LOGGER.info("Adding %d %s", len(new_entites), "switches")
         async_add_devices(new_entites)
