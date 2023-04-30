@@ -2,20 +2,21 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Generic, List, TypeVar
 
 from toshiba_ac.device import (
     ToshibaAcDevice,
     ToshibaAcStatus,
+    ToshibaAcMeritA,
     ToshibaAcMeritB,
     ToshibaAcFeatures,
 )
 from toshiba_ac.utils import pretty_enum_name
 
-from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.select import SelectEntity
 
 from .const import DOMAIN
+from .entity import ToshibaAcEntity, ToshibaAcStateEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,6 +25,19 @@ _FIREPLACE_MERIT_B = [
     ToshibaAcMeritB.FIREPLACE_1,
     ToshibaAcMeritB.FIREPLACE_2,
 ]
+
+_CDU_SILENT_MERIT_A = [
+    ToshibaAcMeritA.OFF,
+    ToshibaAcMeritA.CDU_SILENT_1,
+    ToshibaAcMeritA.CDU_SILENT_2,
+]
+
+
+def _supports_cdu_silent(features: ToshibaAcFeatures):
+    return (
+        ToshibaAcMeritA.CDU_SILENT_1 in features.ac_merit_a
+        or ToshibaAcMeritA.CDU_SILENT_2 in features.ac_merit_a
+    )
 
 
 def _supports_fireplace(features: ToshibaAcFeatures):
@@ -48,14 +62,59 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
             select_entity = ToshibaFireplaceSelect(device)
             new_entities.append(select_entity)
         else:
-            _LOGGER.info("AC device does not support fireplace operation")
+            _LOGGER.info("AC device does not support fireplace mode")
+
+        if _supports_cdu_silent(device.supported):
+            select_entity = ToshibaCduSilentSelect(device)
+            new_entities.append(select_entity)
+        else:
+            _LOGGER.info("AC device does not support outdoor unit silent mode")
 
     if new_entities:
         _LOGGER.info("Adding %d %s", len(new_entities), "selects")
         async_add_devices(new_entities)
 
 
-class ToshibaFireplaceSelect(ToshibaAcEntity, SelectEntity):
+class ToshibaCduSilentSelect(ToshibaAcStateEntity, SelectEntity):
+    """Provides a select to toggle the outdoor unit silent mode"""
+
+    _attr_icon = "mdi:home-sound-in-outline"
+
+    def __init__(self, toshiba_device: ToshibaAcDevice):
+        super().__init__(toshiba_device)
+        self._attr_unique_id = f"{self._device.ac_unique_id}_cdu_silent"
+        self._attr_name = f"{self._device.name} Outdoor Unit Silent Mode"
+        self._attr_options = self.get_feature_list(
+            [
+                value
+                for value in _CDU_SILENT_MERIT_A
+                if value in self._device.supported.ac_merit_a
+            ]
+        )
+        self.update_attrs()
+
+    async def async_select_option(self, option: str) -> None:
+        await self._device.set_ac_merit_a(
+            self.get_feature_list_id(_CDU_SILENT_MERIT_A, option)
+        )
+
+    def update_attrs(self):
+        value = (
+            self._device.ac_merit_a
+            if self._device.ac_merit_a in _CDU_SILENT_MERIT_A
+            else ToshibaAcMeritA.OFF
+        )
+        self._attr_current_option = pretty_enum_name(value)
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return super().available and _supports_cdu_silent(
+            self._device.supported.for_ac_mode(self._device.ac_mode)
+        )
+
+
+class ToshibaFireplaceSelect(ToshibaAcStateEntity, SelectEntity):
     """Provides a select to toggle the fireplace mode."""
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
@@ -71,27 +130,14 @@ class ToshibaFireplaceSelect(ToshibaAcEntity, SelectEntity):
                 if value in self._device.supported.ac_merit_b
             ]
         )
-        self._update_state()
-
-    async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
-        self._device.on_state_changed_callback.add(self._state_changed)
-
-    async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
-        self._device.on_state_changed_callback.remove(self._state_changed)
+        self.update_attrs()
 
     async def async_select_option(self, option: str) -> None:
         await self._device.set_ac_merit_b(
             self.get_feature_list_id(_FIREPLACE_MERIT_B, option)
         )
 
-    async def _state_changed(self, _dev: ToshibaAcDevice):
-        """Call if we need to change the ha state."""
-        self._update_state()
-        self.async_write_ha_state()
-
-    def _update_state(self) -> None:
+    def update_attrs(self):
         value = (
             self._device.ac_merit_b
             if self._device.ac_merit_b in _FIREPLACE_MERIT_B
