@@ -25,7 +25,7 @@ from homeassistant.components.climate.const import (
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 
 from .const import DOMAIN
-from .entity import ToshibaAcEntity
+from .entity import ToshibaAcStateEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         async_add_devices(new_devices)
 
 
-class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
+class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
     """Provides a Toshiba climates."""
 
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
@@ -109,36 +109,6 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
         # self.entity_id = "climate." + self._name.lower() + "_" + self._device_id
 
     # default entity properties
-
-    async def state_changed(self, dev):
-        """Whenever state should change."""
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
-        # Importantly for a push integration, the module that will be getting updates
-        # needs to notify HA of changes. The dummy device has a registercallback
-        # method, so to this we add the 'self.async_write_ha_state' method, to be
-        # called where ever there are changes.
-        # The call back registration is done once this entity is registered with HA
-        # (rather than in the __init__)
-        # self._device.register_callback(self.async_write_ha_state)
-        self._device.on_state_changed_callback.add(self.state_changed)
-
-    async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
-        # The opposite of async_added_to_hass. Remove any registered call backs here.
-        # self._device.remove_callback(self.async_write_ha_state)
-        self._device.on_state_changed_callback.remove(self.state_changed)
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
 
     @property
     def is_on(self):
@@ -305,20 +275,3 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             "self_cleaning": self._device.ac_self_cleaning.name,
             "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
-
-    def get_feature_list(self, feature_list: list[Any]) -> list[Any]:
-        """Return a list of features supported by the device."""
-        return [
-            pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"
-        ]
-
-    def get_feature_list_id(self, feature_list: list[Any], feature_name: str) -> Any:
-        """Return the enum value of that item with the given name from a feature list."""
-        _LOGGER.debug("searching %s for %s", feature_list, feature_name)
-
-        feature_list = [e for e in feature_list if pretty_enum_name(e) == feature_name]
-        _LOGGER.debug("and found %s", feature_list)
-
-        if len(feature_list) > 0:
-            return feature_list[0]
-        return None

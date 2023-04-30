@@ -6,7 +6,6 @@ import logging
 
 from toshiba_ac.device import ToshibaAcDevice, ToshibaAcDeviceEnergyConsumption
 
-from custom_components.toshiba_ac.entity import ToshibaAcEntity
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -16,6 +15,7 @@ from homeassistant.const import ENERGY_WATT_HOUR, TEMP_CELSIUS
 from homeassistant.helpers.typing import StateType
 
 from .const import DOMAIN
+from .entity import ToshibaAcEntity, ToshibaAcStateEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
-
         # _LOGGER.debug("device %s", device)
         # _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
 
@@ -64,19 +63,15 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
     _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _ac_energy_consumption: ToshibaAcDeviceEnergyConsumption | None = None
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
         super().__init__(toshiba_device)
-
-        self._ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
-
         self._attr_unique_id = f"{self._device.ac_unique_id}_sensor"
         self._attr_name = f"{self._device.name} Power Consumption"
 
-    # default entity properties
-
-    async def state_changed(self, dev):
+    async def state_changed(self, _dev: ToshibaAcDevice):
         """Call if we need to change the ha state."""
         self._ac_energy_consumption = self._device.ac_energy_consumption
         self.async_write_ha_state()
@@ -99,15 +94,6 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
         self._device.on_energy_consumption_changed_callback.remove(self.state_changed)
 
     @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
-
-    @property
     def native_value(self) -> StateType | date | datetime:
         """Return the value reported by the sensor."""
         if self._ac_energy_consumption:
@@ -121,7 +107,7 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
             return {"last_reset": self._ac_energy_consumption.since}
 
 
-class ToshibaTempSensor(ToshibaAcEntity, SensorEntity):
+class ToshibaTempSensor(ToshibaAcStateEntity, SensorEntity):
     """Provides a Toshiba Temperature Sensors."""
 
     _attr_native_unit_of_measurement = TEMP_CELSIUS
@@ -136,18 +122,6 @@ class ToshibaTempSensor(ToshibaAcEntity, SensorEntity):
         self._attr_unique_id = f"{self._device.ac_unique_id}_outdoor_temperature"
         self._attr_name = f"{self._device.name} Outdoor Temperature"
 
-    async def state_changed(self, dev):
-        """Call if we need to change the ha state."""
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
-        self._device.on_state_changed_callback.add(self.state_changed)
-
-    async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
-        self._device.on_state_changed_callback.remove(self.state_changed)
-
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
@@ -155,11 +129,7 @@ class ToshibaTempSensor(ToshibaAcEntity, SensorEntity):
             self._device.ac_outdoor_temperature
             or self._device.ac_outdoor_temperature == 0
         ):
-            return (
-                self._device.ac_id
-                and self._device.amqp_api.sas_token
-                and self._device.http_api.access_token
-            )
+            return super().available
         return False
 
     @property

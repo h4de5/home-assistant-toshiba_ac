@@ -60,3 +60,21 @@ class ToshibaAcEntity(Entity):
         if len(feature_list) > 0:
             return feature_list[0]
         return None
+
+
+class ToshibaAcStateEntity(ToshibaAcEntity):
+    """Base class for entities that subscribe to the device's state_changed callback"""
+
+    async def async_added_to_hass(self):
+        self._device.on_state_changed_callback.add(self._state_changed)
+
+    async def async_will_remove_from_hass(self):
+        self._device.on_state_changed_callback.remove(self._state_changed)
+
+    def update_attrs(self):
+        """Called when the Toshiba AC entity state changes"""
+        return None
+
+    def _state_changed(self, _device: ToshibaAcDevice):
+        self.update_attrs()
+        self.async_write_ha_state()
