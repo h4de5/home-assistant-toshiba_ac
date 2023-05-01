@@ -1,4 +1,4 @@
-"""Base classes for Toshiba AC entites."""
+"""Base classes for Toshiba AC entities."""
 
 from __future__ import annotations
 import logging
@@ -12,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ToshibaAcEntity(Entity):
-    """Representation of an Toshiba AC device entity."""
+    """Representation of a Toshiba AC device entity."""
 
     _attr_should_poll = False
 
