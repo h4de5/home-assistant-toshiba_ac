@@ -118,7 +118,6 @@ class ToshibaTempSensor(ToshibaAcStateEntity, SensorEntity):
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the sensor."""
         super().__init__(toshiba_device)
-        self._ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
 
         self._attr_unique_id = f"{self._device.ac_unique_id}_outdoor_temperature"
         self._attr_name = f"{self._device.name} Outdoor Temperature"
@@ -126,14 +125,11 @@ class ToshibaTempSensor(ToshibaAcStateEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
-        if (
-            self._device.ac_outdoor_temperature
-            or self._device.ac_outdoor_temperature == 0
-        ):
-            return super().available
-        return False
+        if self._device.ac_outdoor_temperature is None:
+            return False
+        return super().available
 
     @property
-    def native_value(self) -> StateType | date | datetime:
+    def native_value(self) -> int | None:
         """Return the value reported by the sensor."""
         return self._device.ac_outdoor_temperature
