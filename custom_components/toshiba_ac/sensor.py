@@ -125,14 +125,11 @@ class ToshibaTempSensor(ToshibaAcStateEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if sensor is available."""
-        if (
-            self._device.ac_outdoor_temperature
-            or self._device.ac_outdoor_temperature == 0
-        ):
-            return super().available
-        return False
+        if self._device.ac_outdoor_temperature is None:
+            return False
+        return super().available
 
     @property
-    def native_value(self) -> StateType | date | datetime:
+    def native_value(self) -> int | None:
         """Return the value reported by the sensor."""
         return self._device.ac_outdoor_temperature
