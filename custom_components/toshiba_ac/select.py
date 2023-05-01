@@ -72,9 +72,9 @@ class ToshibaAcEnumSelectDescription(
     def current_option_name(self, device: ToshibaAcDevice) -> str | None:
         value = self.get_device_attr(device)
         if value and value in self.values:
-            return value.name
+            return value.name.lower()
         if self.off_value:
-            return self.off_value.name
+            return self.off_value.name.lower()
         return None
 
     def get_option_names(self, features: ToshibaAcFeatures):
@@ -178,7 +178,7 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
 
     @property
     def icon(self):
-        mapped = None
-        if self.state:
-            mapped = self.entity_description.icon_mapping.get(self.state)
+        if not self.current_option:
+            return self.entity_description.icon
+        mapped = self.entity_description.icon_mapping.get(self.current_option)
         return mapped or self.entity_description.icon
