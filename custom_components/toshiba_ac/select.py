@@ -109,7 +109,7 @@ _SELECT_DESCRIPTIONS: Sequence[ToshibaAcSelectDescription] = [
         key="fireplace",
         translation_key="fireplace",
         icon="mdi:fireplace",
-        icon_mapping={"Off": "mdi:fireplace-off"},
+        icon_mapping={"off": "mdi:fireplace-off"},
         ac_attr_name="ac_merit_b",
         values=[
             ToshibaAcMeritB.OFF,
@@ -175,3 +175,10 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
     def available(self) -> bool:
         features = self._device.supported.for_ac_mode(self._device.ac_mode)
         return super().available and self.entity_description.is_available(features)
+
+    @property
+    def icon(self):
+        mapped = None
+        if self.state:
+            mapped = self.entity_description.icon_mapping.get(self.state)
+        return mapped or self.entity_description.icon
