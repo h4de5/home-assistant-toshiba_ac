@@ -23,17 +23,17 @@
 			"cdu_silent": {
 				"name": "Outdoor unit silent mode",
 				"state": {
-					"OFF": "Off",
-					"CDU_SILENT_1": "Silent 1",
-					"CDU_SILENT_2": "Silent 2"
+					"off": "Off",
+					"cdu_silent_1": "Silent 1",
+					"cdu_silent_2": "Silent 2"
 				}
 			},
 			"fireplace": {
 				"name": "Fireplace mode",
 				"state": {
-					"OFF": "Off",
-					"FIREPLACE_1": "Fireplace 1",
-					"FIREPLACE_2": "Fireplace 2"
+					"off": "Off",
+					"fireplace_1": "Fireplace 1",
+					"fireplace_2": "Fireplace 2"
 				}
 			}
 		},

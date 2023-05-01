@@ -65,7 +65,7 @@ class ToshibaAcEnumSelectDescription(
 
     async def async_select_option_name(self, device: ToshibaAcDevice, name: str):
         for value in self.values:
-            if value.name == name:
+            if value.name.lower() == name:
                 await self.async_set_attr(device, value)
                 return
 
@@ -78,7 +78,7 @@ class ToshibaAcEnumSelectDescription(
         return None
 
     def get_option_names(self, features: ToshibaAcFeatures):
-        return [v.name for v in self.get_option_values(features)]
+        return [v.name.lower() for v in self.get_option_values(features)]
 
     def get_option_values(self, features: ToshibaAcFeatures):
         """Returns all the supported option enum values"""

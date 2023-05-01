@@ -36,17 +36,17 @@
 			"cdu_silent": {
 				"name": "Geräuscharmer Betrieb (Außengerät)",
 				"state": {
-					"OFF": "Aus",
-					"CDU_SILENT_1": "Geräuscharm 1",
-					"CDU_SILENT_2": "Geräuscharm 2"
+					"off": "Aus",
+					"cdu_silent_1": "Geräuscharm 1",
+					"cdu_silent_2": "Geräuscharm 2"
 				}
 			},
 			"fireplace": {
 				"name": "Kaminbetrieb",
 				"state": {
-					"OFF": "Aus",
-					"FIREPLACE_1": "Kamin 1",
-					"FIREPLACE_2": "Kamin 2"
+					"off": "Aus",
+					"fireplace_1": "Kamin 1",
+					"fireplace_2": "Kamin 2"
 				}
 			}
 		}
