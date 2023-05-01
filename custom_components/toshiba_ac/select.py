@@ -1,50 +1,124 @@
 """Select platform for Toshiba AC integration."""
 from __future__ import annotations
+from dataclasses import dataclass, field
+from enum import Enum
 
 import logging
-from typing import Any, Generic, List, TypeVar
+from typing import Generic, Sequence, TypeVar
 
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from toshiba_ac.device import (
     ToshibaAcDevice,
-    ToshibaAcStatus,
     ToshibaAcMeritA,
     ToshibaAcMeritB,
     ToshibaAcFeatures,
 )
-from toshiba_ac.utils import pretty_enum_name
-
-from homeassistant.components.select import SelectEntity
 
 from .const import DOMAIN
-from .entity import ToshibaAcEntity, ToshibaAcStateEntity
+from .entity import ToshibaAcStateEntity
+from .entity_description import ToshibaAcEnumEntityDescriptionMixin
 
 _LOGGER = logging.getLogger(__name__)
 
-_FIREPLACE_MERIT_B = [
-    ToshibaAcMeritB.OFF,
-    ToshibaAcMeritB.FIREPLACE_1,
-    ToshibaAcMeritB.FIREPLACE_2,
+TEnum = TypeVar("TEnum", bound=Enum)
+
+
+@dataclass(kw_only=True)
+class ToshibaAcSelectDescription(SelectEntityDescription):
+    """Describes a Toshiba AC select entity type"""
+
+    icon_mapping: dict[str, str] = field(default_factory=dict)
+
+    async def async_select_option_name(self, device: ToshibaAcDevice, name: str):
+        """Selects the provided option"""
+
+    def current_option_name(self, _device: ToshibaAcDevice) -> str | None:
+        """Returns the currently selected option"""
+        return None
+
+    def get_option_names(self, _features: ToshibaAcFeatures) -> list[str]:
+        """Returns the available options for given Toshiba AC device features"""
+        return []
+
+    def is_available(self, _features: ToshibaAcFeatures):
+        """Return True if the switch is available. Called to determine
+        if the switch should be created in the first place, and then
+        later to determine if it should be available based on the current AC mode"""
+        return False
+
+
+TEnum = TypeVar("TEnum", bound=Enum)
+
+
+@dataclass(kw_only=True)
+class ToshibaAcEnumSelectDescription(
+    ToshibaAcSelectDescription,
+    ToshibaAcEnumEntityDescriptionMixin[TEnum],
+    Generic[TEnum],
+):
+    """Describes a Toshiba AC select entity type based on an enum"""
+
+    ac_attr_name: str = ""
+    ac_attr_setter: str = ""
+    off_value: TEnum | None = None
+    values: list[TEnum] = field(default_factory=list)
+
+    async def async_select_option_name(self, device: ToshibaAcDevice, name: str):
+        for value in self.values:
+            if value.name == name:
+                await self.async_set_attr(device, value)
+                return
+
+    def current_option_name(self, device: ToshibaAcDevice) -> str | None:
+        value = self.get_device_attr(device)
+        if value and value in self.values:
+            return value.name
+        if self.off_value:
+            return self.off_value.name
+        return None
+
+    def get_option_names(self, features: ToshibaAcFeatures):
+        return [v.name for v in self.get_option_values(features)]
+
+    def get_option_values(self, features: ToshibaAcFeatures):
+        """Returns all the supported option enum values"""
+        values = self.get_features_attr(features)
+        return [v for v in self.values if v in values]
+
+    def is_available(self, features: ToshibaAcFeatures):
+        options = self.get_option_values(features)
+        if self.off_value is not None and self.off_value in options:
+            options.remove(self.off_value)
+        return len(options) != 0
+
+
+_SELECT_DESCRIPTIONS: Sequence[ToshibaAcSelectDescription] = [
+    ToshibaAcEnumSelectDescription(
+        key="cdu_silent",
+        icon="mdi:home-sound-in-outline",
+        translation_key="cdu_silent",
+        ac_attr_name="ac_merit_a",
+        values=[
+            ToshibaAcMeritA.OFF,
+            ToshibaAcMeritA.CDU_SILENT_1,
+            ToshibaAcMeritA.CDU_SILENT_2,
+        ],
+        off_value=ToshibaAcMeritA.OFF,
+    ),
+    ToshibaAcEnumSelectDescription(
+        key="fireplace",
+        translation_key="fireplace",
+        icon="mdi:fireplace",
+        icon_mapping={"Off": "mdi:fireplace-off"},
+        ac_attr_name="ac_merit_b",
+        values=[
+            ToshibaAcMeritB.OFF,
+            ToshibaAcMeritB.FIREPLACE_1,
+            ToshibaAcMeritB.FIREPLACE_2,
+        ],
+        off_value=ToshibaAcMeritB.OFF,
+    ),
 ]
-
-_CDU_SILENT_MERIT_A = [
-    ToshibaAcMeritA.OFF,
-    ToshibaAcMeritA.CDU_SILENT_1,
-    ToshibaAcMeritA.CDU_SILENT_2,
-]
-
-
-def _supports_cdu_silent(features: ToshibaAcFeatures):
-    return (
-        ToshibaAcMeritA.CDU_SILENT_1 in features.ac_merit_a
-        or ToshibaAcMeritA.CDU_SILENT_2 in features.ac_merit_a
-    )
-
-
-def _supports_fireplace(features: ToshibaAcFeatures):
-    return (
-        ToshibaAcMeritB.FIREPLACE_1 in features.ac_merit_b
-        or ToshibaAcMeritB.FIREPLACE_2 in features.ac_merit_b
-    )
 
 
 # This function is called as part of the __init__.async_setup_entry (via the
@@ -58,99 +132,46 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
-        if _supports_fireplace(device.supported):
-            select_entity = ToshibaFireplaceSelect(device)
-            new_entities.append(select_entity)
-        else:
-            _LOGGER.info("AC device does not support fireplace mode")
-
-        if _supports_cdu_silent(device.supported):
-            select_entity = ToshibaCduSilentSelect(device)
-            new_entities.append(select_entity)
-        else:
-            _LOGGER.info("AC device does not support outdoor unit silent mode")
+        for entity_description in _SELECT_DESCRIPTIONS:
+            if entity_description.is_available(device.supported):
+                new_entities.append(ToshibaAcSelectEntity(device, entity_description))
+            else:
+                _LOGGER.info(
+                    "AC device %s does not support %s",
+                    device.name,
+                    entity_description.key,
+                )
 
     if new_entities:
         _LOGGER.info("Adding %d %s", len(new_entities), "selects")
         async_add_devices(new_entities)
 
 
-class ToshibaCduSilentSelect(ToshibaAcStateEntity, SelectEntity):
-    """Provides a select to toggle the outdoor unit silent mode"""
+class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
+    """Provides a select based on a ToshibaAcSelectDescription"""
 
-    _attr_icon = "mdi:home-sound-in-outline"
+    entity_description: ToshibaAcSelectDescription
+    _attr_has_entity_name = True
 
-    def __init__(self, toshiba_device: ToshibaAcDevice):
-        super().__init__(toshiba_device)
-        self._attr_unique_id = f"{self._device.ac_unique_id}_cdu_silent"
-        self._attr_name = f"{self._device.name} Outdoor Unit Silent Mode"
-        self._attr_options = self.get_feature_list(
-            [
-                value
-                for value in _CDU_SILENT_MERIT_A
-                if value in self._device.supported.ac_merit_a
-            ]
-        )
+    def __init__(
+        self, device: ToshibaAcDevice, entity_description: ToshibaAcSelectDescription
+    ):
+        super().__init__(device)
+        self._attr_unique_id = f"{device.ac_unique_id}_{entity_description.key}"
+        self.entity_description = entity_description
         self.update_attrs()
 
     async def async_select_option(self, option: str) -> None:
-        await self._device.set_ac_merit_a(
-            self.get_feature_list_id(_CDU_SILENT_MERIT_A, option)
-        )
+        await self.entity_description.async_select_option_name(self._device, option)
 
     def update_attrs(self):
-        value = (
-            self._device.ac_merit_a
-            if self._device.ac_merit_a in _CDU_SILENT_MERIT_A
-            else ToshibaAcMeritA.OFF
+        features = self._device.supported.for_ac_mode(self._device.ac_mode)
+        self._attr_options = self.entity_description.get_option_names(features)
+        self._attr_current_option = self.entity_description.current_option_name(
+            self._device
         )
-        self._attr_current_option = pretty_enum_name(value)
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
-        return super().available and _supports_cdu_silent(
-            self._device.supported.for_ac_mode(self._device.ac_mode)
-        )
-
-
-class ToshibaFireplaceSelect(ToshibaAcStateEntity, SelectEntity):
-    """Provides a select to toggle the fireplace mode."""
-
-    def __init__(self, toshiba_device: ToshibaAcDevice):
-        """Initialize the select."""
-        super().__init__(toshiba_device)
-
-        self._attr_unique_id = f"{self._device.ac_unique_id}_fireplace"
-        self._attr_name = f"{self._device.name} Fireplace Mode"
-        self._attr_options = self.get_feature_list(
-            [
-                value
-                for value in _FIREPLACE_MERIT_B
-                if value in self._device.supported.ac_merit_b
-            ]
-        )
-        self.update_attrs()
-
-    async def async_select_option(self, option: str) -> None:
-        await self._device.set_ac_merit_b(
-            self.get_feature_list_id(_FIREPLACE_MERIT_B, option)
-        )
-
-    def update_attrs(self):
-        value = (
-            self._device.ac_merit_b
-            if self._device.ac_merit_b in _FIREPLACE_MERIT_B
-            else ToshibaAcMeritB.OFF
-        )
-        self._attr_icon = (
-            "mdi:fireplace-off" if value == ToshibaAcMeritB.OFF else "mdi:fireplace"
-        )
-        self._attr_current_option = pretty_enum_name(value)
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return super().available and _supports_fireplace(
-            self._device.supported.for_ac_mode(self._device.ac_mode)
-        )
+        features = self._device.supported.for_ac_mode(self._device.ac_mode)
+        return super().available and self.entity_description.is_available(features)

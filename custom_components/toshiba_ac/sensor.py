@@ -114,14 +114,13 @@ class ToshibaTempSensor(ToshibaAcStateEntity, SensorEntity):
     _attr_native_unit_of_measurement = TEMP_CELSIUS
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_has_entity_name = True
 
-    def __init__(self, toshiba_device: ToshibaAcDevice):
+    def __init__(self, device: ToshibaAcDevice):
         """Initialize the sensor."""
-        super().__init__(toshiba_device)
-        self._ac_energy_consumption: ToshibaAcDeviceEnergyConsumption = None
-
-        self._attr_unique_id = f"{self._device.ac_unique_id}_outdoor_temperature"
-        self._attr_name = f"{self._device.name} Outdoor Temperature"
+        super().__init__(device)
+        self._attr_unique_id = f"{device.ac_unique_id}_outdoor_temperature"
+        self._attr_translation_key = "outdoor_temperature"
 
     @property
     def available(self) -> bool:

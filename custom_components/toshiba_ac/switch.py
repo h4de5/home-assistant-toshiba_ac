@@ -1,9 +1,10 @@
 """Switch platform for the Toshiba AC integration."""
 from __future__ import annotations
 from dataclasses import dataclass
+from enum import Enum
 
 import logging
-from typing import Any, Sequence
+from typing import Any, Generic, Sequence, TypeVar
 
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -20,11 +21,12 @@ from toshiba_ac.device import (
 
 from .const import DOMAIN
 from .entity import ToshibaAcStateEntity
+from .entity_description import ToshibaAcEnumEntityDescriptionMixin
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ToshibaAcSwitchDescription(SwitchEntityDescription):
     """Describes a Toshiba AC switch entity type"""
 
@@ -48,60 +50,52 @@ class ToshibaAcSwitchDescription(SwitchEntityDescription):
         return False
 
 
-@dataclass
-class ToshibaAcMeritASwitchDescription(ToshibaAcSwitchDescription):
-    """Describes a Toshiba AC switch that is controlled using an ac_merit_a flag"""
-
-    ac_merit_a: ToshibaAcMeritA = ToshibaAcMeritA.NONE
-
-    async def async_turn_off(self, device: ToshibaAcDevice):
-        await device.set_ac_merit_a(ToshibaAcMeritA.OFF)
-
-    async def async_turn_on(self, device: ToshibaAcDevice):
-        if self.ac_merit_a != ToshibaAcMeritA.NONE:
-            await device.set_ac_merit_a(self.ac_merit_a)
-
-    def is_on(self, device: ToshibaAcDevice):
-        if self.ac_merit_a == ToshibaAcMeritA.NONE:
-            return False
-        return device.ac_merit_a == self.ac_merit_a
-
-    def is_available(self, features: ToshibaAcFeatures):
-        if self.ac_merit_a == ToshibaAcMeritA.NONE:
-            return False
-        return self.ac_merit_a in features.ac_merit_a
+TEnum = TypeVar("TEnum", bound=Enum)
 
 
-class ToshibaAcAirPureIonDescription(ToshibaAcSwitchDescription):
-    """Describes the Toshiba AC air purifier switch"""
+@dataclass(kw_only=True)
+class ToshibaAcEnumSwitchDescription(
+    ToshibaAcSwitchDescription,
+    ToshibaAcEnumEntityDescriptionMixin[TEnum],
+    Generic[TEnum],
+):
+    """Describes a Toshiba AC switch that is controlled using an enum flag"""
+
+    ac_on_value: TEnum | None = None
+    ac_off_value: TEnum | None = None
+    ac_attr_name: str = ""
+    ac_attr_setter: str = ""
 
     async def async_turn_off(self, device: ToshibaAcDevice):
-        await device.set_ac_air_pure_ion(ToshibaAcAirPureIon.OFF)
+        await self.async_set_attr(device, self.ac_off_value)
 
     async def async_turn_on(self, device: ToshibaAcDevice):
-        await device.set_ac_air_pure_ion(ToshibaAcAirPureIon.ON)
+        await self.async_set_attr(device, self.ac_on_value)
 
     def is_on(self, device: ToshibaAcDevice):
-        return device.ac_air_pure_ion == ToshibaAcAirPureIon.ON
+        return self.get_device_attr(device) == self.ac_on_value
 
     def is_available(self, features: ToshibaAcFeatures):
-        return ToshibaAcAirPureIon.ON in features.ac_air_pure_ion
+        return self.ac_on_value in self.get_features_attr(features)
 
 
 _SWITCH_DESCRIPTIONS: Sequence[ToshibaAcSwitchDescription] = [
-    ToshibaAcMeritASwitchDescription(
+    ToshibaAcEnumSwitchDescription(
         key="8_degc_mode",
-        icon="mdi:snowflake-melt",
-        ac_merit_a=ToshibaAcMeritA.HEATING_8C,
         translation_key="8_degc_mode",
-        name="8 °C mode",
+        icon="mdi:snowflake-melt",
+        ac_attr_name="ac_merit_a",
+        ac_on_value=ToshibaAcMeritA.HEATING_8C,
+        ac_off_value=ToshibaAcMeritA.OFF,
     ),
-    ToshibaAcAirPureIonDescription(
+    ToshibaAcEnumSwitchDescription(
         key="air_purifier",
+        translation_key="air_purifier",
         icon="mdi:air-purifier",
         off_icon="mdi:air-purifier-off",
-        translation_key="air_purifier",
-        name="Air purifier",
+        ac_attr_name="ac_air_pure_ion",
+        ac_on_value=ToshibaAcAirPureIon.ON,
+        ac_off_value=ToshibaAcAirPureIon.OFF,
     ),
 ]
 
@@ -126,12 +120,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
                     device.name,
                     entity_description.key,
                 )
-
-        if ToshibaAcMeritA.HEATING_8C in device.supported.ac_merit_a:
-            switch_entity = Toshiba8CModeSwitch(device)
-            new_entites.append(switch_entity)
-        else:
-            _LOGGER.info("AC device does not support 8 °C mode")
 
     if new_entites:
         _LOGGER.info("Adding %d %s", len(new_entites), "switches")

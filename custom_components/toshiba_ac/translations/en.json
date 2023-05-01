@@ -19,6 +19,29 @@
 		}
 	},
 	"entity": {
+		"select": {
+			"cdu_silent": {
+				"name": "Outdoor unit silent mode",
+				"state": {
+					"OFF": "Off",
+					"CDU_SILENT_1": "Silent 1",
+					"CDU_SILENT_2": "Silent 2"
+				}
+			},
+			"fireplace": {
+				"name": "Fireplace mode",
+				"state": {
+					"OFF": "Off",
+					"FIREPLACE_1": "Fireplace 1",
+					"FIREPLACE_2": "Fireplace 2"
+				}
+			}
+		},
+		"sensor": {
+			"outdoor_temperature": {
+				"name": "Outdoor temperature"
+			}
+		},
 		"switch": {
 			"8_degc_mode": {
 				"name": "8 °C mode"

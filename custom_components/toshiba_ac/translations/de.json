@@ -26,6 +26,29 @@
 			"air_purifier": {
 				"name": "Luftreiniger"
 			}
+		},
+		"sensor": {
+			"outdoor_temperature": {
+				"name": "Außentemperatur"
+			}
+		},
+		"select": {
+			"cdu_silent": {
+				"name": "Geräuscharmer Betrieb (Außengerät)",
+				"state": {
+					"OFF": "Aus",
+					"CDU_SILENT_1": "Geräuscharm 1",
+					"CDU_SILENT_2": "Geräuscharm 2"
+				}
+			},
+			"fireplace": {
+				"name": "Kaminbetrieb",
+				"state": {
+					"OFF": "Aus",
+					"FIREPLACE_1": "Kamin 1",
+					"FIREPLACE_2": "Kamin 2"
+				}
+			}
 		}
 	}
 }
