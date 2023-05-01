@@ -59,21 +59,24 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
     """Provides a Toshiba climates."""
 
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    # This is the main entity for the device
+    _attr_has_entity_name = True
+    _attr_name = None
+
     _attr_supported_features = (
         ClimateEntityFeature.FAN_MODE
         | ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.SWING_MODE
         | ClimateEntityFeature.PRESET_MODE
     )
+    _attr_target_temperature_step = 1
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the climate."""
         super().__init__(toshiba_device)
 
         self._attr_unique_id = f"{self._device.ac_unique_id}_climate"
-        self._attr_name = self._device.name
-        self._attr_target_temperature_step = 1
         self._attr_fan_modes = get_feature_list(self._device.supported.ac_fan_mode)
         self._attr_swing_modes = get_feature_list(self._device.supported.ac_swing_mode)
 

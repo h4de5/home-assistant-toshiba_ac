@@ -17,5 +17,15 @@
 				}
 			}
 		}
+	},
+	"entity": {
+		"switch": {
+			"8_degc_mode": {
+				"name": "8 °C Heizbetrieb"
+			},
+			"air_purifier": {
+				"name": "Luftreiniger"
+			}
+		}
 	}
 }

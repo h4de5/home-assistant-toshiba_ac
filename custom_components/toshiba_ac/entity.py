@@ -49,7 +49,6 @@ class ToshibaAcStateEntity(ToshibaAcEntity):
 
     def update_attrs(self):
         """Called when the Toshiba AC device state changes"""
-        pass
 
     def _state_changed(self, _device: ToshibaAcDevice):
         self.update_attrs()
