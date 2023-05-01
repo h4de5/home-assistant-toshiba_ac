@@ -1,27 +1,25 @@
-"""Parent class for every Toshiba AC device."""
+"""Base classes for Toshiba AC entites."""
 
 from __future__ import annotations
+import logging
 
 from toshiba_ac.device import ToshibaAcDevice
-
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ToshibaAcEntity(Entity):
     """Representation of an Toshiba AC device entity."""
 
+    _attr_should_poll = False
+
     def __init__(self, toshiba_device: ToshibaAcDevice) -> None:
-        """Initialize the device."""
+        """Initialize the entity."""
         self._device = toshiba_device
-
-        self._attr_should_poll = False
-        self._attr_device_info = self.generate_device_info()
-
-    def generate_device_info(self) -> DeviceInfo:
-        """Information about this entity/device."""
-        return DeviceInfo(
+        self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device.ac_unique_id)},
             account=self._device.ac_id,
             device_id=self._device.device_id,
@@ -29,3 +27,30 @@ class ToshibaAcEntity(Entity):
             name=self._device.name,
             sw_version=self._device.firmware_version,
         )
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return bool(
+            self._device.ac_id
+            and self._device.amqp_api.sas_token
+            and self._device.http_api.access_token
+        )
+
+
+class ToshibaAcStateEntity(ToshibaAcEntity):
+    """Base class for entities that subscribe to the device's state_changed callback"""
+
+    async def async_added_to_hass(self):
+        self._device.on_state_changed_callback.add(self._state_changed)
+
+    async def async_will_remove_from_hass(self):
+        self._device.on_state_changed_callback.remove(self._state_changed)
+
+    def update_attrs(self):
+        """Called when the Toshiba AC device state changes"""
+        pass
+
+    def _state_changed(self, _device: ToshibaAcDevice):
+        self.update_attrs()
+        self.async_write_ha_state()
