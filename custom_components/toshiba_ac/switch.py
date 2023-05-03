@@ -43,7 +43,7 @@ class ToshibaAcSwitchDescription(SwitchEntityDescription):
         """Return True if the switch is on"""
         return False
 
-    def is_available(self, _features: ToshibaAcFeatures):
+    def is_supported(self, _features: ToshibaAcFeatures):
         """Return True if the switch is available. Called to determine
         if the switch should be created in the first place, and then
         later to determine if it should be available based on the current AC mode"""
@@ -75,7 +75,7 @@ class ToshibaAcEnumSwitchDescription(
     def is_on(self, device: ToshibaAcDevice):
         return self.get_device_attr(device) == self.ac_on_value
 
-    def is_available(self, features: ToshibaAcFeatures):
+    def is_supported(self, features: ToshibaAcFeatures):
         return self.ac_on_value in self.get_features_attr(features)
 
 
@@ -112,7 +112,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
         for entity_description in _SWITCH_DESCRIPTIONS:
-            if entity_description.is_available(device.supported):
+            if entity_description.is_supported(device.supported):
                 new_entites.append(ToshibaAcSwitchEntity(device, entity_description))
             else:
                 _LOGGER.info(
@@ -147,7 +147,7 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
         return (
             super().available
             and self._device.ac_status == ToshibaAcStatus.ON
-            and self.entity_description.is_available(
+            and self.entity_description.is_supported(
                 self._device.supported.for_ac_mode(self._device.ac_mode)
             )
         )

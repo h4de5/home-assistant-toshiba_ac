@@ -40,7 +40,7 @@ class ToshibaAcSelectDescription(SelectEntityDescription):
         """Returns the available options for given Toshiba AC device features"""
         return []
 
-    def is_available(self, _features: ToshibaAcFeatures):
+    def is_supported(self, _features: ToshibaAcFeatures):
         """Return True if the switch is available. Called to determine
         if the switch should be created in the first place, and then
         later to determine if it should be available based on the current AC mode"""
@@ -85,7 +85,7 @@ class ToshibaAcEnumSelectDescription(
         values = self.get_features_attr(features)
         return [v for v in self.values if v in values]
 
-    def is_available(self, features: ToshibaAcFeatures):
+    def is_supported(self, features: ToshibaAcFeatures):
         options = self.get_option_values(features)
         if self.off_value is not None and self.off_value in options:
             options.remove(self.off_value)
@@ -133,7 +133,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
         for entity_description in _SELECT_DESCRIPTIONS:
-            if entity_description.is_available(device.supported):
+            if entity_description.is_supported(device.supported):
                 new_entities.append(ToshibaAcSelectEntity(device, entity_description))
             else:
                 _LOGGER.info(
@@ -174,7 +174,7 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
     @property
     def available(self) -> bool:
         features = self._device.supported.for_ac_mode(self._device.ac_mode)
-        return super().available and self.entity_description.is_available(features)
+        return super().available and self.entity_description.is_supported(features)
 
     @property
     def icon(self):
