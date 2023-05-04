@@ -16,7 +16,7 @@ class ToshibaAcEnumEntityDescriptionMixin(Generic[TEnum]):
     ac_attr_name: str
     ac_attr_setter: str
 
-    async def async_set_attr(self, device: ToshibaAcDevice, value: TEnum | None):
+    async def async_set_attr(self, device: ToshibaAcDevice, value: TEnum | None) -> None:
         """Sets the provided option enum value"""
         if not self.ac_attr_setter and not self.ac_attr_name:
             return
