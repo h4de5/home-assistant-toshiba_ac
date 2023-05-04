@@ -41,15 +41,15 @@ class ToshibaAcEntity(Entity):
 class ToshibaAcStateEntity(ToshibaAcEntity):
     """Base class for entities that subscribe to the device's state_changed callback"""
 
-    async def async_added_to_hass(self):
+    async def async_added_to_hass(self) -> None:
         self._device.on_state_changed_callback.add(self._state_changed)
 
-    async def async_will_remove_from_hass(self):
+    async def async_will_remove_from_hass(self) -> None:
         self._device.on_state_changed_callback.remove(self._state_changed)
 
-    def update_attrs(self):
+    def update_attrs(self) -> None:
         """Called when the Toshiba AC device state changes"""
 
-    def _state_changed(self, _device: ToshibaAcDevice):
+    def _state_changed(self, _device: ToshibaAcDevice) -> None:
         self.update_attrs()
         self.async_write_ha_state()
