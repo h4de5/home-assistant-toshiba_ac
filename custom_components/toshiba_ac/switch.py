@@ -1,87 +1,169 @@
-"""Platform for sensor integration."""
+"""Switch platform for the Toshiba AC integration."""
 from __future__ import annotations
+from dataclasses import dataclass
+from enum import Enum
 
 import logging
-from typing import Any
+from typing import Any, Generic, Sequence, TypeVar
 
+from homeassistant.components.switch import (
+    SwitchDeviceClass,
+    SwitchEntity,
+    SwitchEntityDescription,
+)
 from toshiba_ac.device import (
-    ToshibaAcDevice,
-    ToshibaAcStatus,
     ToshibaAcAirPureIon,
+    ToshibaAcDevice,
+    ToshibaAcFeatures,
+    ToshibaAcMeritA,
+    ToshibaAcStatus,
 )
 
-from custom_components.toshiba_ac.entity import ToshibaAcEntity
-from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
-
 from .const import DOMAIN
+from .entity import ToshibaAcStateEntity
+from .entity_description import ToshibaAcEnumEntityDescriptionMixin
 
 _LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(kw_only=True)
+class ToshibaAcSwitchDescription(SwitchEntityDescription):
+    """Describes a Toshiba AC switch entity type"""
+
+    device_class = SwitchDeviceClass.SWITCH
+    off_icon: str | None = None
+
+    async def async_turn_on(self, _device: ToshibaAcDevice):
+        """Turns the switch on"""
+
+    async def async_turn_off(self, _device: ToshibaAcDevice):
+        """Turns the switch off"""
+
+    def is_on(self, _device: ToshibaAcDevice):
+        """Return True if the switch is on"""
+        return False
+
+    def is_supported(self, _features: ToshibaAcFeatures):
+        """Return True if the switch is available. Called to determine
+        if the switch should be created in the first place, and then
+        later to determine if it should be available based on the current AC mode"""
+        return False
+
+
+TEnum = TypeVar("TEnum", bound=Enum)
+
+
+@dataclass(kw_only=True)
+class ToshibaAcEnumSwitchDescription(
+    ToshibaAcSwitchDescription,
+    ToshibaAcEnumEntityDescriptionMixin[TEnum],
+    Generic[TEnum],
+):
+    """Describes a Toshiba AC switch that is controlled using an enum flag"""
+
+    ac_on_value: TEnum | None = None
+    ac_off_value: TEnum | None = None
+    ac_attr_name: str = ""
+    ac_attr_setter: str = ""
+
+    async def async_turn_off(self, device: ToshibaAcDevice):
+        await self.async_set_attr(device, self.ac_off_value)
+
+    async def async_turn_on(self, device: ToshibaAcDevice):
+        await self.async_set_attr(device, self.ac_on_value)
+
+    def is_on(self, device: ToshibaAcDevice):
+        return self.get_device_attr(device) == self.ac_on_value
+
+    def is_supported(self, features: ToshibaAcFeatures):
+        return self.ac_on_value in self.get_features_attr(features)
+
+
+_SWITCH_DESCRIPTIONS: Sequence[ToshibaAcSwitchDescription] = [
+    ToshibaAcEnumSwitchDescription(
+        key="8_degc_mode",
+        translation_key="8_degc_mode",
+        icon="mdi:snowflake-melt",
+        ac_attr_name="ac_merit_a",
+        ac_on_value=ToshibaAcMeritA.HEATING_8C,
+        ac_off_value=ToshibaAcMeritA.OFF,
+    ),
+    ToshibaAcEnumSwitchDescription(
+        key="air_purifier",
+        translation_key="air_purifier",
+        icon="mdi:air-purifier",
+        off_icon="mdi:air-purifier-off",
+        ac_attr_name="ac_air_pure_ion",
+        ac_on_value=ToshibaAcAirPureIon.ON,
+        ac_off_value=ToshibaAcAirPureIon.OFF,
+    ),
+]
 
 
 # This function is called as part of the __init__.async_setup_entry (via the
 # hass.config_entries.async_forward_entry_setup call)
 async def async_setup_entry(hass, config_entry, async_add_devices):
-    """Add sensor for passed config_entry in HA."""
+    """Add all sensors for passed config_entry in HA."""
     # The hub is loaded from the associated hass.data entry that was created in the
     # __init__.async_setup_entry function
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
-    new_devices = []
+    new_entites = []
 
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
-        if ToshibaAcAirPureIon.ON in device.supported.ac_air_pure_ion:
-            switch_entity = ToshibaAirPureIonSwitch(device)
-            new_devices.append(switch_entity)
-        else:
-            _LOGGER.info("AC device does not support air purification")
+        for entity_description in _SWITCH_DESCRIPTIONS:
+            if entity_description.is_supported(device.supported):
+                new_entites.append(ToshibaAcSwitchEntity(device, entity_description))
+            else:
+                _LOGGER.info(
+                    "AC device %s does not support %s",
+                    device.name,
+                    entity_description.key,
+                )
 
-    if new_devices:
-        _LOGGER.info("Adding %d %s", len(new_devices), "switches")
-        async_add_devices(new_devices)
+    if new_entites:
+        _LOGGER.info("Adding %d %s", len(new_entites), "switches")
+        async_add_devices(new_entites)
 
 
-class ToshibaAirPureIonSwitch(ToshibaAcEntity, SwitchEntity):
-    """Provides a switch to toggle the air purifier."""
+class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
+    """Provides a switch entity based on a ToshibaAcSwitchDescription."""
 
-    _attr_device_class = SwitchDeviceClass.SWITCH
+    entity_description: ToshibaAcSwitchDescription
+    _attr_has_entity_name = True
 
-    def __init__(self, toshiba_device: ToshibaAcDevice):
+    def __init__(
+        self, device: ToshibaAcDevice, entity_description: ToshibaAcSwitchDescription
+    ):
         """Initialize the switch."""
-        super().__init__(toshiba_device)
+        super().__init__(device)
 
-        self._attr_unique_id = f"{self._device.ac_unique_id}_air_purifier"
-        self._attr_name = f"{self._device.name} Air Purifier"
-        self._update_state()
-
-    async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
-        self._device.on_state_changed_callback.add(self._state_changed)
-
-    async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
-        self._device.on_state_changed_callback.remove(self._state_changed)
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        await self._device.set_ac_air_pure_ion(ToshibaAcAirPureIon.OFF)
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        await self._device.set_ac_air_pure_ion(ToshibaAcAirPureIon.ON)
-
-    async def _state_changed(self, _dev: ToshibaAcDevice):
-        """Call if we need to change the ha state."""
-        self._update_state()
-        self.async_write_ha_state()
-
-    def _update_state(self) -> None:
-        self._attr_is_on = self._device.ac_air_pure_ion == ToshibaAcAirPureIon.ON
-        self._attr_icon = "mdi:air-purifier" if self.is_on else "mdi:air-purifier-off"
+        self.entity_description = entity_description
+        self._attr_unique_id = f"{device.ac_unique_id}_{entity_description.key}"
+        self.update_attrs()
 
     @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return bool(
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
+    def available(self):
+        return (
+            super().available
             and self._device.ac_status == ToshibaAcStatus.ON
+            and self.entity_description.is_supported(
+                self._device.supported.for_ac_mode(self._device.ac_mode)
+            )
         )
+
+    @property
+    def icon(self):
+        if self.entity_description.off_icon and not self.is_on:
+            return self.entity_description.off_icon
+        return super().icon
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.entity_description.is_on(self._device)
+
+    async def async_turn_off(self, **kwargs: Any):
+        await self.entity_description.async_turn_off(self._device)
+
+    async def async_turn_on(self, **kwargs: Any):
+        await self.entity_description.async_turn_on(self._device)

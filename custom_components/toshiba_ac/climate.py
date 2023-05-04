@@ -25,7 +25,8 @@ from homeassistant.components.climate.const import (
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 
 from .const import DOMAIN
-from .entity import ToshibaAcEntity
+from .entity import ToshibaAcStateEntity
+from .feature_list import get_feature_by_name, get_feature_list
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,102 +44,41 @@ HVAC_MODE_TO_TOSHIBA = {v: k for k, v in TOSHIBA_TO_HVAC_MODE.items()}
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add climate for passed config_entry in HA."""
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
-    new_devices = []
+    new_entities = []
 
     devices = await device_manager.get_devices()
     for device in devices:
         climate_entity = ToshibaClimate(device)
-        new_devices.append(climate_entity)
-    # If we have any new devices, add them
-    if new_devices:
-        _LOGGER.info("Adding %d %s", len(new_devices), "climates")
-        async_add_devices(new_devices)
+        new_entities.append(climate_entity)
+
+    if new_entities:
+        _LOGGER.info("Adding %d %s", len(new_entities), "climates")
+        async_add_devices(new_entities)
 
 
-class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
+class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
     """Provides a Toshiba climates."""
 
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    # This is the main entity for the device
+    _attr_has_entity_name = True
+    _attr_name = None
+
     _attr_supported_features = (
         ClimateEntityFeature.FAN_MODE
         | ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.SWING_MODE
         | ClimateEntityFeature.PRESET_MODE
     )
+    _attr_target_temperature_step = 1
+    _attr_temperature_unit = UnitOfTemperature.CELSIUS
 
     def __init__(self, toshiba_device: ToshibaAcDevice):
         """Initialize the climate."""
         super().__init__(toshiba_device)
 
         self._attr_unique_id = f"{self._device.ac_unique_id}_climate"
-        self._attr_name = self._device.name
-        self._attr_target_temperature_step = 1
-        self._attr_fan_modes = self.get_feature_list(self._device.supported.ac_fan_mode)
-        self._attr_swing_modes = self.get_feature_list(
-            self._device.supported.ac_swing_mode
-        )
-        # _LOGGER.debug("###########################")
-        # _LOGGER.debug(
-        #     "Supported features: ac_mode %s, ac_swing_mode %s, ac_merit_b %s, ac_merit_a %s, ac_energy_report %s",
-        #     self._device.supported.ac_mode,
-        #     self._device.supported.ac_swing_mode,
-        #     self._device.supported.ac_merit_b,
-        #     self._device.supported.ac_merit_a,
-        #     # self._device.supported.ac_pure_ion,
-        #     self._device.supported.ac_energy_report,
-        # )
-
-        # # _LOGGER.debug("Test get current power selection %s", self._device.ac_power_selection)
-        # # _LOGGER.debug("Test get list of power selections %s", list(ToshibaAcPowerSelection))
-
-        # # ac_power_selection_nice = [pretty_enum_name(e) for e in self._device.supported.ac_swing_mode]
-
-        # # self._device.supported.ac_swing_mode
-
-        # _LOGGER.debug("Test get list of swing modes %s", self.get_feature_list(self._device.supported.ac_swing_mode))
-
-        # # _LOGGER.debug(
-        # #     "Test get list of swing modes %s %s",
-        # #     self._device.supported.ac_swing_mode,
-        # #     list(self._device.supported.ac_swing_mode),
-        # # )
-
-        # _LOGGER.debug("###########################")
-
-        # ToshibaEntity.__init__(self, device_id, toshibaconnection, toshibaproject, coordinator)
-        # self.entity_id = "climate." + self._name.lower() + "_" + self._device_id
-
-    # default entity properties
-
-    async def state_changed(self, dev):
-        """Whenever state should change."""
-        self.async_write_ha_state()
-
-    async def async_added_to_hass(self):
-        """Run when this Entity has been added to HA."""
-        # Importantly for a push integration, the module that will be getting updates
-        # needs to notify HA of changes. The dummy device has a registercallback
-        # method, so to this we add the 'self.async_write_ha_state' method, to be
-        # called where ever there are changes.
-        # The call back registration is done once this entity is registered with HA
-        # (rather than in the __init__)
-        # self._device.register_callback(self.async_write_ha_state)
-        self._device.on_state_changed_callback.add(self.state_changed)
-
-    async def async_will_remove_from_hass(self):
-        """Entity being removed from hass."""
-        # The opposite of async_added_to_hass. Remove any registered call backs here.
-        # self._device.remove_callback(self.async_write_ha_state)
-        self._device.on_state_changed_callback.remove(self.state_changed)
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return (
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
+        self._attr_fan_modes = get_feature_list(self._device.supported.ac_fan_mode)
+        self._attr_swing_modes = get_feature_list(self._device.supported.ac_swing_mode)
 
     @property
     def is_on(self):
@@ -192,13 +132,13 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
         Requires SUPPORT_PRESET_MODE.
         """
-        return self.get_feature_list(self._device.supported.ac_power_selection)
+        return get_feature_list(self._device.supported.ac_power_selection)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         _LOGGER.info("Toshiba Climate setting preset_mode: %s", preset_mode)
 
-        feature_list_id = self.get_feature_list_id(
+        feature_list_id = get_feature_by_name(
             list(ToshibaAcPowerSelection), preset_mode
         )
         if feature_list_id is not None:
@@ -241,7 +181,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             if not self.is_on:
                 await self._device.set_ac_status(ToshibaAcStatus.ON)
 
-            feature_list_id = self.get_feature_list_id(list(ToshibaAcFanMode), fan_mode)
+            feature_list_id = get_feature_by_name(list(ToshibaAcFanMode), fan_mode)
             if feature_list_id is not None:
                 await self._device.set_ac_fan_mode(feature_list_id)
 
@@ -252,7 +192,7 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
 
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
-        feature_list_id = self.get_feature_list_id(list(ToshibaAcSwingMode), swing_mode)
+        feature_list_id = get_feature_by_name(list(ToshibaAcSwingMode), swing_mode)
         if feature_list_id is not None:
             await self._device.set_ac_swing_mode(feature_list_id)
 
@@ -305,20 +245,3 @@ class ToshibaClimate(ToshibaAcEntity, ClimateEntity):
             "self_cleaning": self._device.ac_self_cleaning.name,
             "outdoor_temperature": self._device.ac_outdoor_temperature,
         }
-
-    def get_feature_list(self, feature_list: list[Any]) -> list[Any]:
-        """Return a list of features supported by the device."""
-        return [
-            pretty_enum_name(e) for e in feature_list if pretty_enum_name(e) != "None"
-        ]
-
-    def get_feature_list_id(self, feature_list: list[Any], feature_name: str) -> Any:
-        """Return the enum value of that item with the given name from a feature list."""
-        _LOGGER.debug("searching %s for %s", feature_list, feature_name)
-
-        feature_list = [e for e in feature_list if pretty_enum_name(e) == feature_name]
-        _LOGGER.debug("and found %s", feature_list)
-
-        if len(feature_list) > 0:
-            return feature_list[0]
-        return None

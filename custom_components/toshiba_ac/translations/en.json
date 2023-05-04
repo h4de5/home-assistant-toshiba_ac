@@ -17,5 +17,38 @@
 				}
 			}
 		}
+	},
+	"entity": {
+		"select": {
+			"cdu_silent": {
+				"name": "Outdoor unit silent mode",
+				"state": {
+					"off": "Off",
+					"cdu_silent_1": "Silent 1",
+					"cdu_silent_2": "Silent 2"
+				}
+			},
+			"fireplace": {
+				"name": "Fireplace mode",
+				"state": {
+					"off": "Off",
+					"fireplace_1": "Fireplace 1",
+					"fireplace_2": "Fireplace 2"
+				}
+			}
+		},
+		"sensor": {
+			"outdoor_temperature": {
+				"name": "Outdoor temperature"
+			}
+		},
+		"switch": {
+			"8_degc_mode": {
+				"name": "8 °C mode"
+			},
+			"air_purifier": {
+				"name": "Air purifier"
+			}
+		}
 	}
 }
