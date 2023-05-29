@@ -101,6 +101,7 @@ _SWITCH_DESCRIPTIONS: Sequence[ToshibaAcSwitchDescription] = [
         key="eco_mode",
         translation_key="eco_mode",
         icon="mdi:leaf",
+        off_icon="mdi:leaf-off",
         ac_attr_name="ac_merit_a",
         ac_on_value=ToshibaAcMeritA.ECO,
         ac_off_value=ToshibaAcMeritA.OFF,
