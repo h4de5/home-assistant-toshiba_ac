@@ -1,54 +1,57 @@
 {
-	"config": {
-		"abort": {
-			"already_configured": "Das Gerät ist bereits konfiguriert."
-		},
-		"error": {
-			"cannot_connect": "Fehler beim Verbinden",
-			"invalid_auth": "Benutzerdaten konnten nicht verifiziert werden",
-			"unknown": "Unerwarteter Fehler"
-		},
-		"step": {
-			"user": {
-				"data": {
-					"host": "Host",
-					"password": "Passwort",
-					"username": "Benutzername"
-				}
-			}
-		}
-	},
-	"entity": {
-		"switch": {
-			"8_degc_mode": {
-				"name": "8 °C Heizbetrieb"
-			},
-			"air_purifier": {
-				"name": "Luftreiniger"
-			}
-		},
-		"sensor": {
-			"outdoor_temperature": {
-				"name": "Außentemperatur"
-			}
-		},
-		"select": {
-			"cdu_silent": {
-				"name": "Geräuscharmer Betrieb (Außengerät)",
-				"state": {
-					"off": "Aus",
-					"cdu_silent_1": "Geräuscharm 1",
-					"cdu_silent_2": "Geräuscharm 2"
-				}
-			},
-			"fireplace": {
-				"name": "Kaminbetrieb",
-				"state": {
-					"off": "Aus",
-					"fireplace_1": "Kamin 1",
-					"fireplace_2": "Kamin 2"
-				}
-			}
-		}
-	}
+  "config": {
+    "abort": {
+      "already_configured": "Das Gerät ist bereits konfiguriert."
+    },
+    "error": {
+      "cannot_connect": "Fehler beim Verbinden",
+      "invalid_auth": "Benutzerdaten konnten nicht verifiziert werden",
+      "unknown": "Unerwarteter Fehler"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "host": "Host",
+          "password": "Passwort",
+          "username": "Benutzername"
+        }
+      }
+    }
+  },
+  "entity": {
+    "switch": {
+      "8_degc_mode": {
+        "name": "8 °C Heizbetrieb"
+      },
+      "air_purifier": {
+        "name": "Luftreiniger"
+      },
+      "eco_mode": {
+        "name": "ECO Modus"
+      }
+    },
+    "sensor": {
+      "outdoor_temperature": {
+        "name": "Außentemperatur"
+      }
+    },
+    "select": {
+      "cdu_silent": {
+        "name": "Geräuscharmer Betrieb (Außengerät)",
+        "state": {
+          "off": "Aus",
+          "cdu_silent_1": "Geräuscharm 1",
+          "cdu_silent_2": "Geräuscharm 2"
+        }
+      },
+      "fireplace": {
+        "name": "Kaminbetrieb",
+        "state": {
+          "off": "Aus",
+          "fireplace_1": "Kamin 1",
+          "fireplace_2": "Kamin 2"
+        }
+      }
+    }
+  }
 }
