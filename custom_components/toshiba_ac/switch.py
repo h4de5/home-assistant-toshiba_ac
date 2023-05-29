@@ -97,6 +97,14 @@ _SWITCH_DESCRIPTIONS: Sequence[ToshibaAcSwitchDescription] = [
         ac_on_value=ToshibaAcAirPureIon.ON,
         ac_off_value=ToshibaAcAirPureIon.OFF,
     ),
+    ToshibaAcEnumSwitchDescription(
+        key="eco_mode",
+        translation_key="eco_mode",
+        icon="mdi:eco",
+        ac_attr_name="ac_merit_a",
+        ac_on_value=ToshibaAcMeritA.ECO,
+        ac_off_value=ToshibaAcMeritA.OFF,
+    ),
 ]
 
 
