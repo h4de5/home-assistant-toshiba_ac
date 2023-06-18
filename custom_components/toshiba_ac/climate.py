@@ -174,6 +174,7 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
 
     async def async_set_fan_mode(self, fan_mode):
         """Set new target fan mode."""
+        fan_mode = pretty_enum_name(fan_mode)
         _LOGGER.info("Toshiba Climate setting fan_mode: %s", fan_mode)
         if fan_mode == FAN_OFF:
             await self._device.set_ac_fan_mode(ToshibaAcStatus.OFF)
@@ -192,6 +193,7 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
 
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
+        swing_mode = pretty_enum_name(swing_mode)
         feature_list_id = get_feature_by_name(list(ToshibaAcSwingMode), swing_mode)
         if feature_list_id is not None:
             await self._device.set_ac_swing_mode(feature_list_id)
