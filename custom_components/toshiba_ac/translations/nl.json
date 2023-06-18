@@ -23,7 +23,7 @@
       "cdu_silent": {
         "name": "Buitenunit stille mode",
         "state": {
-          "off": "Off",
+          "off": "Uit",
           "cdu_silent_1": "Stille modus 1",
           "cdu_silent_2": "Stille modus 2"
         }
@@ -31,7 +31,7 @@
       "fireplace": {
         "name": "Openhaard modus",
         "state": {
-          "off": "Off",
+          "off": "Uit",
           "fireplace_1": "Openhaard 1",
           "fireplace_2": "Openhaard 2"
         }
