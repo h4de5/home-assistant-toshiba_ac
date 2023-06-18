@@ -1,8 +1,8 @@
 """Switch platform for the Toshiba AC integration."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-
 import logging
 from typing import Any, Generic, Sequence, TypeVar
 
@@ -13,6 +13,7 @@ from toshiba_ac.device import (
     ToshibaAcMeritA,
     ToshibaAcStatus,
 )
+
 from homeassistant.components.switch import (
     SwitchDeviceClass,
     SwitchEntity,

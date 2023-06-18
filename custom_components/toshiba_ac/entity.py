@@ -1,9 +1,11 @@
 """Base classes for Toshiba AC entities."""
 
 from __future__ import annotations
+
 import logging
 
 from toshiba_ac.device import ToshibaAcDevice
+
 from homeassistant.helpers.entity import DeviceInfo, Entity
 
 from .const import DOMAIN

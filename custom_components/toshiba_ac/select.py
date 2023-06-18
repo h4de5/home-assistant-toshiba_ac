@@ -12,6 +12,7 @@ from toshiba_ac.device import (
     ToshibaAcMeritA,
     ToshibaAcMeritB,
 )
+
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 
 from .const import DOMAIN
