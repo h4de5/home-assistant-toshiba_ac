@@ -1,4 +1,4 @@
-"""Contains the base classes of entity descriptions"""
+"""Contain the base classes of entity descriptions."""
 
 from enum import Enum
 from logging import getLogger
@@ -11,13 +11,15 @@ TEnum = TypeVar("TEnum", bound=Enum)
 
 
 class ToshibaAcEnumEntityDescriptionMixin(Generic[TEnum]):
-    """Mixes in async_set_attr and get_attr helpers to dynamically set enum values"""
+    """Mix in async_set_attr and get_attr helpers to dynamically set enum values."""
 
     ac_attr_name: str
     ac_attr_setter: str
 
-    async def async_set_attr(self, device: ToshibaAcDevice, value: TEnum | None) -> None:
-        """Sets the provided option enum value"""
+    async def async_set_attr(
+        self, device: ToshibaAcDevice, value: TEnum | None
+    ) -> None:
+        """Set the provided option enum value."""
         if not self.ac_attr_setter and not self.ac_attr_name:
             return
         if value is None:
@@ -27,13 +29,13 @@ class ToshibaAcEnumEntityDescriptionMixin(Generic[TEnum]):
         await getattr(device, setter)(value)
 
     def get_device_attr(self, device: ToshibaAcDevice) -> TEnum | None:
-        """Returns the current option enum value"""
+        """Return the current option enum value."""
         if self.ac_attr_name:
             return getattr(device, self.ac_attr_name)
         return None
 
     def get_features_attr(self, features: ToshibaAcFeatures) -> list[TEnum]:
-        """Returns the supported enum values"""
+        """Return the supported enum values."""
         if self.ac_attr_name:
             return getattr(features, self.ac_attr_name)
         return []

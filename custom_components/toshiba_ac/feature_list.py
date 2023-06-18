@@ -1,4 +1,4 @@
-"""Helpers for converting enums to strings"""
+"""Include helpers for converting enums to strings."""
 
 from enum import Enum
 import logging

@@ -1,22 +1,23 @@
 """Switch platform for the Toshiba AC integration."""
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-
 import logging
 from typing import Any, Generic, Sequence, TypeVar
 
-from homeassistant.components.switch import (
-    SwitchDeviceClass,
-    SwitchEntity,
-    SwitchEntityDescription,
-)
 from toshiba_ac.device import (
     ToshibaAcAirPureIon,
     ToshibaAcDevice,
     ToshibaAcFeatures,
     ToshibaAcMeritA,
     ToshibaAcStatus,
+)
+
+from homeassistant.components.switch import (
+    SwitchDeviceClass,
+    SwitchEntity,
+    SwitchEntityDescription,
 )
 
 from .const import DOMAIN
@@ -28,25 +29,28 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass(kw_only=True)
 class ToshibaAcSwitchDescription(SwitchEntityDescription):
-    """Describes a Toshiba AC switch entity type"""
+    """Describe a Toshiba AC switch entity type."""
 
     device_class = SwitchDeviceClass.SWITCH
     off_icon: str | None = None
 
     async def async_turn_on(self, _device: ToshibaAcDevice):
-        """Turns the switch on"""
+        """Turn the switch on."""
 
     async def async_turn_off(self, _device: ToshibaAcDevice):
-        """Turns the switch off"""
+        """Turn the switch off."""
 
     def is_on(self, _device: ToshibaAcDevice):
-        """Return True if the switch is on"""
+        """Return True if the switch is on."""
         return False
 
     def is_supported(self, _features: ToshibaAcFeatures):
-        """Return True if the switch is available. Called to determine
-        if the switch should be created in the first place, and then
-        later to determine if it should be available based on the current AC mode"""
+        """
+        Return True if the switch is available.
+
+        Called to determine if the switch should be created in the first place, and then
+        later to determine if it should be available based on the current AC mode.
+        """
         return False
 
 
@@ -59,7 +63,7 @@ class ToshibaAcEnumSwitchDescription(
     ToshibaAcEnumEntityDescriptionMixin[TEnum],
     Generic[TEnum],
 ):
-    """Describes a Toshiba AC switch that is controlled using an enum flag"""
+    """Describe a Toshiba AC switch that is controlled using an enum flag."""
 
     ac_on_value: TEnum | None = None
     ac_off_value: TEnum | None = None
@@ -67,15 +71,19 @@ class ToshibaAcEnumSwitchDescription(
     ac_attr_setter: str = ""
 
     async def async_turn_off(self, device: ToshibaAcDevice):
+        """Turn the switch off."""
         await self.async_set_attr(device, self.ac_off_value)
 
     async def async_turn_on(self, device: ToshibaAcDevice):
+        """Turn the switch on."""
         await self.async_set_attr(device, self.ac_on_value)
 
     def is_on(self, device: ToshibaAcDevice):
+        """Return True if the switch is on."""
         return self.get_device_attr(device) == self.ac_on_value
 
     def is_supported(self, features: ToshibaAcFeatures):
+        """Return True if the switch is available."""
         return self.ac_on_value in self.get_features_attr(features)
 
 
@@ -152,6 +160,7 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
 
     @property
     def available(self):
+        """Return True if entity is available."""
         return (
             super().available
             and self._device.ac_status == ToshibaAcStatus.ON
@@ -162,16 +171,20 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
 
     @property
     def icon(self):
+        """Return the icon."""
         if self.entity_description.off_icon and not self.is_on:
             return self.entity_description.off_icon
         return super().icon
 
     @property
     def is_on(self) -> bool | None:
+        """Return True if the switch is on."""
         return self.entity_description.is_on(self._device)
 
     async def async_turn_off(self, **kwargs: Any):
+        """Turn the switch off."""
         await self.entity_description.async_turn_off(self._device)
 
     async def async_turn_on(self, **kwargs: Any):
+        """Turn the switch on."""
         await self.entity_description.async_turn_on(self._device)
