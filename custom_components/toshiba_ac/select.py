@@ -1,18 +1,18 @@
 """Select platform for Toshiba AC integration."""
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
-
 import logging
 from typing import Generic, Sequence, TypeVar
 
-from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from toshiba_ac.device import (
     ToshibaAcDevice,
+    ToshibaAcFeatures,
     ToshibaAcMeritA,
     ToshibaAcMeritB,
-    ToshibaAcFeatures,
 )
+from homeassistant.components.select import SelectEntity, SelectEntityDescription
 
 from .const import DOMAIN
 from .entity import ToshibaAcStateEntity
@@ -25,25 +25,25 @@ TEnum = TypeVar("TEnum", bound=Enum)
 
 @dataclass(kw_only=True)
 class ToshibaAcSelectDescription(SelectEntityDescription):
-    """Describes a Toshiba AC select entity type"""
+    """Describe a Toshiba AC select entity type."""
 
     icon_mapping: dict[str, str] = field(default_factory=dict)
 
     async def async_select_option_name(self, device: ToshibaAcDevice, name: str):
-        """Selects the provided option"""
+        """Select the provided option."""
 
     def current_option_name(self, _device: ToshibaAcDevice) -> str | None:
-        """Returns the currently selected option"""
+        """Return the currently selected option."""
         return None
 
     def get_option_names(self, _features: ToshibaAcFeatures) -> list[str]:
-        """Returns the available options for given Toshiba AC device features"""
+        """Return the available options for given Toshiba AC device features."""
         return []
 
     def is_supported(self, _features: ToshibaAcFeatures):
         """Return True if the switch is available. Called to determine
         if the switch should be created in the first place, and then
-        later to determine if it should be available based on the current AC mode"""
+        later to determine if it should be available based on the current AC mode."""
         return False
 
 
@@ -56,7 +56,7 @@ class ToshibaAcEnumSelectDescription(
     ToshibaAcEnumEntityDescriptionMixin[TEnum],
     Generic[TEnum],
 ):
-    """Describes a Toshiba AC select entity type based on an enum"""
+    """Describe a Toshiba AC select entity type based on an enum."""
 
     ac_attr_name: str = ""
     ac_attr_setter: str = ""
@@ -64,6 +64,7 @@ class ToshibaAcEnumSelectDescription(
     values: list[TEnum] = field(default_factory=list)
 
     async def async_select_option_name(self, device: ToshibaAcDevice, name: str):
+        """Select a given option."""
         for value in self.values:
             if value.name.lower() == name:
                 await self.async_set_attr(device, value)
@@ -81,7 +82,7 @@ class ToshibaAcEnumSelectDescription(
         return [v.name.lower() for v in self.get_option_values(features)]
 
     def get_option_values(self, features: ToshibaAcFeatures):
-        """Returns all the supported option enum values"""
+        """Return all the supported option enum values."""
         values = self.get_features_attr(features)
         return [v for v in self.values if v in values]
 
@@ -148,14 +149,12 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 
 
 class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
-    """Provides a select based on a ToshibaAcSelectDescription"""
+    """Provide a select based on a ToshibaAcSelectDescription."""
 
     entity_description: ToshibaAcSelectDescription
     _attr_has_entity_name = True
 
-    def __init__(
-        self, device: ToshibaAcDevice, entity_description: ToshibaAcSelectDescription
-    ):
+    def __init__(self, device: ToshibaAcDevice, entity_description: ToshibaAcSelectDescription):
         super().__init__(device)
         self._attr_unique_id = f"{device.ac_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
@@ -167,9 +166,7 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
     def update_attrs(self):
         features = self._device.supported.for_ac_mode(self._device.ac_mode)
         self._attr_options = self.entity_description.get_option_names(features)
-        self._attr_current_option = self.entity_description.current_option_name(
-            self._device
-        )
+        self._attr_current_option = self.entity_description.current_option_name(self._device)
 
     @property
     def available(self) -> bool:

@@ -6,17 +6,17 @@ from enum import Enum
 import logging
 from typing import Any, Generic, Sequence, TypeVar
 
-from homeassistant.components.switch import (
-    SwitchDeviceClass,
-    SwitchEntity,
-    SwitchEntityDescription,
-)
 from toshiba_ac.device import (
     ToshibaAcAirPureIon,
     ToshibaAcDevice,
     ToshibaAcFeatures,
     ToshibaAcMeritA,
     ToshibaAcStatus,
+)
+from homeassistant.components.switch import (
+    SwitchDeviceClass,
+    SwitchEntity,
+    SwitchEntityDescription,
 )
 
 from .const import DOMAIN
@@ -28,13 +28,13 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass(kw_only=True)
 class ToshibaAcSwitchDescription(SwitchEntityDescription):
-    """Describes a Toshiba AC switch entity type"""
+    """Describe a Toshiba AC switch entity type."""
 
     device_class = SwitchDeviceClass.SWITCH
     off_icon: str | None = None
 
     async def async_turn_on(self, _device: ToshibaAcDevice):
-        """Turns the switch on"""
+        """Turn the switch on."""
 
     async def async_turn_off(self, _device: ToshibaAcDevice):
         """Turns the switch off"""
@@ -140,9 +140,7 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
     entity_description: ToshibaAcSwitchDescription
     _attr_has_entity_name = True
 
-    def __init__(
-        self, device: ToshibaAcDevice, entity_description: ToshibaAcSwitchDescription
-    ):
+    def __init__(self, device: ToshibaAcDevice, entity_description: ToshibaAcSwitchDescription):
         """Initialize the switch."""
         super().__init__(device)
 
@@ -155,9 +153,7 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
         return (
             super().available
             and self._device.ac_status == ToshibaAcStatus.ON
-            and self.entity_description.is_supported(
-                self._device.supported.for_ac_mode(self._device.ac_mode)
-            )
+            and self.entity_description.is_supported(self._device.supported.for_ac_mode(self._device.ac_mode))
         )
 
     @property
