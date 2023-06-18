@@ -162,7 +162,9 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
     entity_description: ToshibaAcSelectDescription
     _attr_has_entity_name = True
 
-    def __init__(self, device: ToshibaAcDevice, entity_description: ToshibaAcSelectDescription):
+    def __init__(
+        self, device: ToshibaAcDevice, entity_description: ToshibaAcSelectDescription
+    ):
         """Initialize the ToshibaAcSelectEntity."""
         super().__init__(device)
         self._attr_unique_id = f"{device.ac_unique_id}_{entity_description.key}"
@@ -177,7 +179,9 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
         """Update the entity's attributes."""
         features = self._device.supported.for_ac_mode(self._device.ac_mode)
         self._attr_options = self.entity_description.get_option_names(features)
-        self._attr_current_option = self.entity_description.current_option_name(self._device)
+        self._attr_current_option = self.entity_description.current_option_name(
+            self._device
+        )
 
     @property
     def available(self) -> bool:

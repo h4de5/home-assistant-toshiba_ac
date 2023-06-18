@@ -148,7 +148,9 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
     entity_description: ToshibaAcSwitchDescription
     _attr_has_entity_name = True
 
-    def __init__(self, device: ToshibaAcDevice, entity_description: ToshibaAcSwitchDescription):
+    def __init__(
+        self, device: ToshibaAcDevice, entity_description: ToshibaAcSwitchDescription
+    ):
         """Initialize the switch."""
         super().__init__(device)
 
@@ -162,7 +164,9 @@ class ToshibaAcSwitchEntity(ToshibaAcStateEntity, SwitchEntity):
         return (
             super().available
             and self._device.ac_status == ToshibaAcStatus.ON
-            and self.entity_description.is_supported(self._device.supported.for_ac_mode(self._device.ac_mode))
+            and self.entity_description.is_supported(
+                self._device.supported.for_ac_mode(self._device.ac_mode)
+            )
         )
 
     @property
