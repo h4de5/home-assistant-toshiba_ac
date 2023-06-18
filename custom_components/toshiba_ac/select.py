@@ -32,6 +32,7 @@ class ToshibaAcSelectDescription(SelectEntityDescription):
 
     async def async_select_option_name(self, device: ToshibaAcDevice, name: str):
         """Select the provided option."""
+        pass
 
     def current_option_name(self, _device: ToshibaAcDevice) -> str | None:
         """Return the currently selected option."""
@@ -42,9 +43,12 @@ class ToshibaAcSelectDescription(SelectEntityDescription):
         return []
 
     def is_supported(self, _features: ToshibaAcFeatures):
-        """Return True if the switch is available. Called to determine
-        if the switch should be created in the first place, and then
-        later to determine if it should be available based on the current AC mode."""
+        """
+        Return True if the select is available.
+
+        Called to determine if the select should be created in the first place, and then
+        later to determine if it should be available based on the current AC mode.
+        """
         return False
 
 
@@ -72,6 +76,7 @@ class ToshibaAcEnumSelectDescription(
                 return
 
     def current_option_name(self, device: ToshibaAcDevice) -> str | None:
+        """Return the currently selected option."""
         value = self.get_device_attr(device)
         if value and value in self.values:
             return value.name.lower()
@@ -80,6 +85,7 @@ class ToshibaAcEnumSelectDescription(
         return None
 
     def get_option_names(self, features: ToshibaAcFeatures):
+        """Return the available options for given Toshiba AC device features."""
         return [v.name.lower() for v in self.get_option_values(features)]
 
     def get_option_values(self, features: ToshibaAcFeatures):
@@ -88,6 +94,7 @@ class ToshibaAcEnumSelectDescription(
         return [v for v in self.values if v in values]
 
     def is_supported(self, features: ToshibaAcFeatures):
+        """Return True if the switch is available."""
         options = self.get_option_values(features)
         if self.off_value is not None and self.off_value in options:
             options.remove(self.off_value)
@@ -156,26 +163,31 @@ class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):
     _attr_has_entity_name = True
 
     def __init__(self, device: ToshibaAcDevice, entity_description: ToshibaAcSelectDescription):
+        """Initialize the ToshibaAcSelectEntity."""
         super().__init__(device)
         self._attr_unique_id = f"{device.ac_unique_id}_{entity_description.key}"
         self.entity_description = entity_description
         self.update_attrs()
 
     async def async_select_option(self, option: str) -> None:
+        """Select a given option."""
         await self.entity_description.async_select_option_name(self._device, option)
 
     def update_attrs(self):
+        """Update the entity's attributes."""
         features = self._device.supported.for_ac_mode(self._device.ac_mode)
         self._attr_options = self.entity_description.get_option_names(features)
         self._attr_current_option = self.entity_description.current_option_name(self._device)
 
     @property
     def available(self) -> bool:
+        """Return True if the entity is available."""
         features = self._device.supported.for_ac_mode(self._device.ac_mode)
         return super().available and self.entity_description.is_supported(features)
 
     @property
     def icon(self):
+        """Return the icon to use in the frontend, if any."""
         if not self.current_option:
             return self.entity_description.icon
         mapped = self.entity_description.icon_mapping.get(self.current_option)

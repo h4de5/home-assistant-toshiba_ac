@@ -33,25 +33,24 @@ class ToshibaAcEntity(Entity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return bool(
-            self._device.ac_id
-            and self._device.amqp_api.sas_token
-            and self._device.http_api.access_token
-        )
+        return bool(self._device.ac_id and self._device.amqp_api.sas_token and self._device.http_api.access_token)
 
 
 class ToshibaAcStateEntity(ToshibaAcEntity):
-    """Base class for entities that subscribe to the device's state_changed callback"""
+    """Base class for entities that subscribe to the device's state_changed callback."""
 
     async def async_added_to_hass(self) -> None:
+        """Subscribe to the device's state_changed callback."""
         self._device.on_state_changed_callback.add(self._state_changed)
 
     async def async_will_remove_from_hass(self) -> None:
+        """Call when device is removed from HA."""
         self._device.on_state_changed_callback.remove(self._state_changed)
 
     def update_attrs(self) -> None:
-        """Called when the Toshiba AC device state changes"""
+        """Call when the Toshiba AC device state changes."""
 
     def _state_changed(self, _device: ToshibaAcDevice) -> None:
+        """Call when the Toshiba AC device state changes."""
         self.update_attrs()
         self.async_write_ha_state()
