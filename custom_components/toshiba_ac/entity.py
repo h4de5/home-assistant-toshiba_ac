@@ -23,7 +23,6 @@ class ToshibaAcEntity(Entity):
         self._device = toshiba_device
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device.ac_unique_id)},
-            account=self._device.ac_id,
             device_id=self._device.device_id,
             manufacturer="Toshiba",
             name=self._device.name,
