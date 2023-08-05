@@ -51,6 +51,9 @@
       },
       "eco_mode": {
         "name": "ECO modus"
+      },
+      "high_power_mode": {
+        "name": "High Power modus"
       }
     }
   }
