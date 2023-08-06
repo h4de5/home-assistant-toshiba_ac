@@ -28,6 +28,9 @@
       },
       "eco_mode": {
         "name": "ECO Modus"
+      },
+      "high_power_mode": {
+        "name": "Hochleistungs Modus"
       }
     },
     "sensor": {
