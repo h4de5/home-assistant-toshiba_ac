@@ -1,1 +1,1 @@
-toshiba-ac==0.3.3
+toshiba-ac==0.3.4
