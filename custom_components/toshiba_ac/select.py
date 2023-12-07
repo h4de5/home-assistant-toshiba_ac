@@ -1,10 +1,11 @@
 """Select platform for Toshiba AC integration."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 import logging
-from typing import Generic, Sequence, TypeVar
+from typing import Generic, TypeVar
 
 from toshiba_ac.device import (
     ToshibaAcDevice,
