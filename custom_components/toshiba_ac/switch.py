@@ -1,10 +1,11 @@
 """Switch platform for the Toshiba AC integration."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
 import logging
-from typing import Any, Generic, Sequence, TypeVar
+from typing import Any, Generic, TypeVar
 
 from toshiba_ac.device import (
     ToshibaAcAirPureIon,
