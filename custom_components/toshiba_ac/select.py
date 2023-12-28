@@ -106,6 +106,7 @@ _SELECT_DESCRIPTIONS: Sequence[ToshibaAcSelectDescription] = [
     ToshibaAcEnumSelectDescription(
         key="cdu_silent",
         icon="mdi:home-sound-in-outline",
+        icon_mapping={},
         translation_key="cdu_silent",
         ac_attr_name="ac_merit_a",
         values=[
