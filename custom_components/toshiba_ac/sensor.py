@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import ENERGY_WATT_HOUR, TEMP_CELSIUS
+from homeassistant.const import UnitOfEnergy, UnitOfTemperature
 from homeassistant.helpers.typing import StateType
 
 from .const import DOMAIN
@@ -60,7 +60,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
 class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
     """Provides a Toshiba Sensors."""
 
-    _attr_native_unit_of_measurement = ENERGY_WATT_HOUR
+    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
     _ac_energy_consumption: ToshibaAcDeviceEnergyConsumption | None = None
@@ -111,7 +111,7 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
 class ToshibaTempSensor(ToshibaAcStateEntity, SensorEntity):
     """Provides a Toshiba Temperature Sensors."""
 
-    _attr_native_unit_of_measurement = TEMP_CELSIUS
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_has_entity_name = True
