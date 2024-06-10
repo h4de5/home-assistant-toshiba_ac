@@ -1,5 +1,6 @@
 """The Toshiba AC integration."""
 from __future__ import annotations
+import logging
 
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
@@ -7,6 +8,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["climate", "select", "sensor", "switch"]
 
@@ -33,7 +36,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await device_manager.connect()
     except Exception:
-        return False
+        _LOGGER.warning("Initial connection failed, trying to get new sas_token...")
+        # If it fails to connect, try to get a new sas_token
+        device_manager = ToshibaAcDeviceManager(
+            entry.data["username"],
+            entry.data["password"],
+            entry.data["device_id"]
+        )
+
+        try:
+            new_sas_token = await device_manager.connect()
+
+            _LOGGER.info("Successfully got new sas_token!")
+
+            # Save new sas_token
+            new_data = {**entry.data, "sas_token": new_sas_token}
+            hass.config_entries.async_update_entry(entry, data=new_data)
+        except Exception:
+            _LOGGER.warning("Connection failed on second try, aborting!")
+            return False
 
     hass.data[DOMAIN][entry.entry_id] = device_manager
 
