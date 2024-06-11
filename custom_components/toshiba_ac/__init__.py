@@ -1,5 +1,6 @@
 """The Toshiba AC integration."""
 from __future__ import annotations
+
 import logging
 
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
