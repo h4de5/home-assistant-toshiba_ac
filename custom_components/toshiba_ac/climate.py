@@ -5,6 +5,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
+from homeassistant.exceptions import ConfigEntryNotReady
 from toshiba_ac.device import (
     ToshibaAcDevice,
     ToshibaAcFanMode,
@@ -47,10 +48,14 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
     new_entities = []
 
-    devices = await device_manager.get_devices()
-    for device in devices:
-        climate_entity = ToshibaClimate(device)
-        new_entities.append(climate_entity)
+    try:
+        devices = await device_manager.get_devices()
+        for device in devices:
+            climate_entity = ToshibaClimate(device)
+            new_entities.append(climate_entity)
+    except Exception as ex:
+        _LOGGER.error("Error during connection to Toshiba server %s", ex)
+        raise ConfigEntryNotReady("Error during connection to Toshiba server") from ex
 
     if new_entities:
         _LOGGER.info("Adding %d %s", len(new_entities), "climates")
@@ -69,6 +74,8 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         | ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.SWING_MODE
         | ClimateEntityFeature.PRESET_MODE
+        | ClimateEntityFeature.TURN_ON
+        | ClimateEntityFeature.TURN_OFF
     )
     _attr_target_temperature_step = 1
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
@@ -134,6 +141,19 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         Requires SUPPORT_PRESET_MODE.
         """
         return get_feature_list(self._device.supported.ac_power_selection)
+
+    async def async_turn_on(self) -> None:
+        await self._device.set_ac_status(ToshibaAcStatus.ON)
+
+    async def async_turn_off(self) -> None:
+        await self._device.set_ac_status(ToshibaAcStatus.OFF)
+
+    async def async_toggle(self) -> None:
+        state = self._device.ac_status
+        if state == ToshibaAcStatus.OFF:
+            await self.async_turn_on()
+        else:
+            await self.async_turn_off()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
