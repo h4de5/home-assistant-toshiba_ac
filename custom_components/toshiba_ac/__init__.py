@@ -27,22 +27,33 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Toshiba AC from a config entry."""
-    # TODO : sas_token removed from intialization as it causes rejects. It will be regenerated automatically
-    # by the library (so at each restart of HASS)
     device_manager = ToshibaAcDeviceManager(
         entry.data["username"],
         entry.data["password"],
         entry.data["device_id"],
-        #entry.data["sas_token"],
+        entry.data["sas_token"],
     )
 
     try:
-        _LOGGER.debug("Connect to Toshiba server")
         await device_manager.connect()
-        _LOGGER.debug("Toshiba connection successful")
-    except Exception as ex:
-        _LOGGER.error("Error during connection to Toshiba server %s", ex)
-        return False
+    except Exception:
+        _LOGGER.warning("Initial connection failed, trying to get new sas_token...")
+        # If it fails to connect, try to get a new sas_token
+        device_manager = ToshibaAcDeviceManager(
+            entry.data["username"], entry.data["password"], entry.data["device_id"]
+        )
+
+        try:
+            new_sas_token = await device_manager.connect()
+
+            _LOGGER.info("Successfully got new sas_token!")
+
+            # Save new sas_token
+            new_data = {**entry.data, "sas_token": new_sas_token}
+            hass.config_entries.async_update_entry(entry, data=new_data)
+        except Exception:
+            _LOGGER.warning("Connection failed on second try, aborting!")
+            return False
 
     hass.data[DOMAIN][entry.entry_id] = device_manager
 
