@@ -5,7 +5,6 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
-from homeassistant.exceptions import ConfigEntryNotReady
 from toshiba_ac.device import (
     ToshibaAcDevice,
     ToshibaAcFanMode,
@@ -25,6 +24,7 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import DOMAIN
 from .entity import ToshibaAcStateEntity
@@ -143,12 +143,15 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         return get_feature_list(self._device.supported.ac_power_selection)
 
     async def async_turn_on(self) -> None:
+        """Turn device on."""
         await self._device.set_ac_status(ToshibaAcStatus.ON)
 
     async def async_turn_off(self) -> None:
+        """Turn device off."""
         await self._device.set_ac_status(ToshibaAcStatus.OFF)
 
     async def async_toggle(self) -> None:
+        """Toggle device status."""
         state = self._device.ac_status
         if state == ToshibaAcStatus.OFF:
             await self.async_turn_on()
