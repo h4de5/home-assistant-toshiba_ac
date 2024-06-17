@@ -84,6 +84,7 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         """Initialize the climate."""
         super().__init__(toshiba_device)
 
+        self._enable_turn_on_off_backwards_compatibility = False
         self._attr_unique_id = f"{self._device.ac_unique_id}_climate"
         self._attr_fan_modes = get_feature_list(self._device.supported.ac_fan_mode)
         self._attr_swing_modes = get_feature_list(self._device.supported.ac_swing_mode)

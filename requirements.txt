@@ -1,1 +1,2 @@
 toshiba-ac==0.3.4
+janus==1.0.0
