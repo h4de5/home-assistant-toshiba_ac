@@ -10,9 +10,9 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
-
 PLATFORMS = ["climate", "select", "sensor", "switch"]
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -64,9 +64,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    _LOGGER.error("Unload Toshiba integration")
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        await hass.data[DOMAIN][entry.entry_id].shutdown()
+        device_manager: ToshibaAcDeviceManager = hass.data[DOMAIN][entry.entry_id]
+        try:
+            await device_manager.shutdown()
+        except Exception as ex:
+            _LOGGER.error("Error while unloading Toshiba integration %s", ex)
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok

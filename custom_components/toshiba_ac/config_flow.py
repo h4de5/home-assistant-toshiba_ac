@@ -33,6 +33,8 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     """
     device_id = f"{random.getrandbits(64):016x}"
 
+    _LOGGER.debug("Toshiba validate input %s %s", data["username"], device_id)
+
     device_manager = ToshibaAcDeviceManager(
         data["username"], data["password"], device_id
     )
@@ -41,10 +43,13 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
         sas_token = await device_manager.connect()
 
     except ToshibaAcHttpApiAuthError as ex:
+        _LOGGER.error("Toshiba connection error %s", ex)
         raise InvalidAuth from ex
     except ToshibaAcHttpApiError as ex:
+        _LOGGER.error("Toshiba connection error %s", ex)
         raise CannotConnect from ex
     finally:
+        _LOGGER.error("Toshiba connection OK")
         await device_manager.shutdown()
 
     return {
