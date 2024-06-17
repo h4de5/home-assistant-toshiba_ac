@@ -38,7 +38,9 @@ You need a supported (or compatible) Toshiba AC device with either a built-in Wi
 
 ## Compatible devices
 
-If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware: [List of Supported Devices](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45) - feel free to update that list!
+If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware: [List of Supported Devices](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45) - feel free to update that list! 
+
+Please Note: Toshiba distributes their AC devices with a different app in the US: [Toshiba AC NA](https://play.google.com/store/apps/details?id=com.midea.toshiba&hl=de_AT) (North America). This fork of [the midea_ac_lan extension](https://github.com/mill1000/midea-ac-py) my be able to control a NA-edition AC unit. It doesn't require an account, which is nice.
 
 
 ## More links and resources
