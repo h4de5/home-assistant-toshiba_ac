@@ -8,8 +8,8 @@
   "homekit": {},
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
-  "requirements": ["toshiba-ac==0.3.4","janus==1.0.0"],
+  "requirements": ["toshiba-ac==0.3.7","janus==1.0.0"],
   "ssdp": [],
-  "version": "2024.6.1",
+  "version": "2024.8.0",
   "zeroconf": []
 }
