@@ -1,4 +1,5 @@
 """The Toshiba AC integration."""
+
 from __future__ import annotations
 
 import logging
@@ -13,6 +14,27 @@ from .const import DOMAIN
 PLATFORMS = ["climate", "select", "sensor", "switch"]
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def sas_token_updated_for_entry(
+    hass: HomeAssistant, entry: ConfigEntry, new_sas_token: str
+):
+    """Update SAS token."""
+    _LOGGER.info("SAS token updated")
+
+    new_data = {**entry.data, "sas_token": new_sas_token}
+    hass.config_entries.async_update_entry(entry, data=new_data)
+
+
+def add_sas_token_updated_callback_for_entry(
+    hass: HomeAssistant, entry: ConfigEntry, device_manager: ToshibaAcDeviceManager
+):
+    """Set up SAS token update callback."""
+
+    async def wrapper_callback(new_sas_token: str):
+        await sas_token_updated_for_entry(hass, entry, new_sas_token)
+
+    device_manager.on_sas_token_updated_callback.add(wrapper_callback)
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -54,6 +76,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except Exception:
             _LOGGER.warning("Connection failed on second try, aborting!")
             return False
+
+    add_sas_token_updated_callback_for_entry(hass, entry, device_manager)
 
     hass.data[DOMAIN][entry.entry_id] = device_manager
 
