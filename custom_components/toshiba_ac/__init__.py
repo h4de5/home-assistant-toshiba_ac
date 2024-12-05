@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from toshiba_ac.device_manager import ToshibaAcDeviceManager
+from .toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant

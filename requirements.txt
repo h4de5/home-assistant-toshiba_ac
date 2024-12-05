@@ -1,2 +1,7 @@
-toshiba-ac==0.3.4
+toshiba-ac==0.3.9
 janus==1.0.0
+logging~=0.4.9.6
+homeassistant~=2024.11.3
+aiohttp~=3.10.11
+voluptuous~=0.15.2
+azure-iot-device>=2.9.0
