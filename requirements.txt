@@ -1,2 +1,3 @@
-toshiba-ac==0.3.4
 janus==1.0.0
+aiohttp~=3.11.13
+azure-iot-device>=3.0.0b2
