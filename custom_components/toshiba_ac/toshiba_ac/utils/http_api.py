@@ -18,8 +18,8 @@ import typing as t
 from dataclasses import dataclass
 
 import aiohttp
-from toshiba_ac.device.properties import ToshibaAcDeviceEnergyConsumption
-from toshiba_ac.utils import retry_with_timeout, retry_on_exception
+from ..device.properties import ToshibaAcDeviceEnergyConsumption
+from . import retry_with_timeout, retry_on_exception
 
 logger = logging.getLogger(__name__)
 

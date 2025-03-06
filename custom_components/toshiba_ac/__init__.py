@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import logging
 
-from toshiba_ac.device_manager import ToshibaAcDeviceManager
+from .toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 PLATFORMS = ["climate", "select", "sensor", "switch"]
 

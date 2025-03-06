@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import logging
 import typing as t
-
 from azure.iot.device import Message, MethodRequest, MethodResponse
 from azure.iot.device.aio import IoTHubDeviceClient
 from azure.iot.device.custom_typing import JSONSerializable
