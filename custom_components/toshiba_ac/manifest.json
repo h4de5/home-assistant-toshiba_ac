@@ -9,10 +9,10 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
   "requirements": [
-    "toshiba-ac@git+https://github.com/KaSroka/Toshiba-AC-control@0.3.11",
+    "toshiba-ac@git+https://github.com/KaSroka/Toshiba-AC-control@v0.3.11",
     "janus==1.0.0"
   ],
   "ssdp": [],
-  "version": "2025.1.0",
+  "version": "2025.3.1",
   "zeroconf": []
 }
