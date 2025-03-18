@@ -1,2 +1,2 @@
-toshiba-ac==0.3.4
+toshiba-ac==0.3.11
 janus==1.0.0
