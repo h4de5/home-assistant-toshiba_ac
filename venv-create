@@ -1,0 +1,5 @@
+python3 -m venv .venv
+echo "to activate: source .venv/bin/activate"
+echo "to install:  pip install -r requirements_dev.txt"
+echo "to get out:  deactivate"
+echo "to remove: pip freeze | cut -d \"@\" -f1 | xargs pip uninstall -y"
