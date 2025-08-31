@@ -91,6 +91,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.error("Unload Toshiba integration")
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
+        setup_task = hass.data[DOMAIN].pop(f"{entry.entry_id}_setup_task", None)
+        if setup_task is not None and not setup_task.done():
+            setup_task.cancel()
+
         device_manager: ToshibaAcDeviceManager = hass.data[DOMAIN][entry.entry_id]
         try:
             await device_manager.shutdown()
