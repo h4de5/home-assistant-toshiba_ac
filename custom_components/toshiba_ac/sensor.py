@@ -1,6 +1,7 @@
 """Platform for sensor integration."""
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime
 import logging
 
@@ -24,37 +25,66 @@ _LOGGER = logging.getLogger(__name__)
 # hass.config_entries.async_forward_entry_setup call)
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensor for passed config_entry in HA."""
-    # The hub is loaded from the associated hass.data entry that was created in the
-    # __init__.async_setup_entry function
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
 
-    # The next few lines find all of the entities that will need to be added
-    # to HA. Note these are all added to a list, so async_add_devices can be
-    # called just once.
-    new_devices = []
+    async def _run_setup():
+        backoff = [1, 3, 7, 30, 60, 300, 1800]
+        attempt = 0
+        while True:
+            try:
+                devices: list[ToshibaAcDevice] = await device_manager.get_devices()
+                new_devices = []
 
-    devices: list[ToshibaAcDevice] = await device_manager.get_devices()
-    for device in devices:
-        # _LOGGER.debug("device %s", device)
-        # _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
+                for device in devices:
+                    # _LOGGER.debug("device %s", device)
+                    # _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
 
-        # if device.ac_energy_consumption:
-        if device.supported.ac_energy_report:
-            sensor_entity = ToshibaPowerSensor(device)
-            new_devices.append(sensor_entity)
-        else:
-            _LOGGER.info("AC device does not support energy monitoring")
+                    # if device.ac_energy_consumption:
+                    if device.supported.ac_energy_report:
+                        sensor_entity = ToshibaPowerSensor(device)
+                        new_devices.append(sensor_entity)
+                    else:
+                        _LOGGER.info("AC device does not support energy monitoring")
 
-        # We cannot check for device.ac_outdoor_temperature not being None
-        # as it will report None when outdoor unit is off
-        # i.e. when AC is in Fan mode or Off
-        sensor_entity = ToshibaTempSensor(device)
-        new_devices.append(sensor_entity)
+                    # We cannot check for device.ac_outdoor_temperature not being None
+                    # as it will report None when outdoor unit is off
+                    # i.e. when AC is in Fan mode or Off
+                    sensor_entity = ToshibaTempSensor(device)
+                    new_devices.append(sensor_entity)
 
-    # If we have any new devices, add them
-    if new_devices:
-        _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
-        async_add_devices(new_devices)
+                # If we have any new devices, add them
+                if new_devices:
+                    _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
+                    async_add_devices(new_devices)
+                return
+            except Exception as ex:
+                wait = backoff[min(attempt, len(backoff) - 1)]
+                attempt += 1
+                _LOGGER.warning(
+                    "Toshiba AC: sensor setup attempt %s failed: %r. Retrying in %s sec",
+                    attempt,
+                    ex,
+                    wait,
+                )
+
+                # Try to reconnect on specific failures that might indicate token issues
+                if attempt == 1 and ("403" in str(ex) or "Forbidden" in str(ex) or "TimeoutError" in str(ex)):
+                    _LOGGER.info("Attempting to refresh connection due to potential token issue")
+                    try:
+                        await device_manager.connect()
+                        _LOGGER.info("Successfully refreshed connection")
+                        # Reset wait time for immediate retry after successful reconnect
+                        wait = 1
+                    except Exception as connect_ex:
+                        _LOGGER.warning("Failed to refresh connection: %r", connect_ex)
+
+                await asyncio.sleep(wait)
+
+    async def _start_setup_task():
+        task = hass.loop.create_task(_run_setup())
+        hass.data[DOMAIN][f"{config_entry.entry_id}_sensor_setup_task"] = task
+
+    await _start_setup_task()
 
 
 class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):

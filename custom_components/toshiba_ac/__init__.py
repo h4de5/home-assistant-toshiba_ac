@@ -81,6 +81,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data[DOMAIN][entry.entry_id] = device_manager
 
+    # Register reconnect service if not already registered
+    if not hass.services.has_service(DOMAIN, "reconnect"):
+        async def _handle_reconnect(call):
+            """Handle reconnect service call."""
+            _LOGGER.info("Reconnect service called, restarting all setup tasks")
+
+            # Cancel and restart all setup tasks for all entries
+            for entry_id in hass.data[DOMAIN]:
+                if isinstance(hass.data[DOMAIN][entry_id], ToshibaAcDeviceManager):
+                    # Cancel existing setup tasks
+                    for task_name in ["setup_task", "sensor_setup_task", "select_setup_task", "switch_setup_task"]:
+                        task_key = f"{entry_id}_{task_name}"
+                        task = hass.data[DOMAIN].get(task_key)
+                        if task and not task.done():
+                            task.cancel()
+                            _LOGGER.info(f"Cancelled {task_name} for entry {entry_id}")
+
+            # Reload the entire integration
+            await hass.config_entries.async_reload(entry.entry_id)
+
+        hass.services.async_register(DOMAIN, "reconnect", _handle_reconnect)
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
@@ -88,12 +110,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    _LOGGER.error("Unload Toshiba integration")
+    _LOGGER.info("Unloading Toshiba integration for entry %s", entry.entry_id)
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        setup_task = hass.data[DOMAIN].pop(f"{entry.entry_id}_setup_task", None)
-        if setup_task is not None and not setup_task.done():
-            setup_task.cancel()
+        # Cancel all setup tasks for this entry
+        for task_name in ["setup_task", "sensor_setup_task", "select_setup_task", "switch_setup_task"]:
+            task_key = f"{entry.entry_id}_{task_name}"
+            setup_task = hass.data[DOMAIN].pop(task_key, None)
+            if setup_task is not None and not setup_task.done():
+                setup_task.cancel()
+                _LOGGER.info(f"Cancelled {task_name} for entry {entry.entry_id}")
 
         device_manager: ToshibaAcDeviceManager = hass.data[DOMAIN][entry.entry_id]
         try:

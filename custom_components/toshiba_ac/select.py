@@ -1,6 +1,7 @@
 """Select platform for Toshiba AC integration."""
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
@@ -136,26 +137,59 @@ _SELECT_DESCRIPTIONS: Sequence[ToshibaAcSelectDescription] = [
 # hass.config_entries.async_forward_entry_setup call)
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensor for passed config_entry in HA."""
-    # The hub is loaded from the associated hass.data entry that was created in the
-    # __init__.async_setup_entry function
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
-    new_entities = []
 
-    devices: list[ToshibaAcDevice] = await device_manager.get_devices()
-    for device in devices:
-        for entity_description in _SELECT_DESCRIPTIONS:
-            if entity_description.is_supported(device.supported):
-                new_entities.append(ToshibaAcSelectEntity(device, entity_description))
-            else:
-                _LOGGER.info(
-                    "AC device %s does not support %s",
-                    device.name,
-                    entity_description.key,
+    async def _run_setup():
+        backoff = [1, 3, 7, 30, 60, 300, 1800]
+        attempt = 0
+        while True:
+            try:
+                devices: list[ToshibaAcDevice] = await device_manager.get_devices()
+                new_entities = []
+
+                for device in devices:
+                    for entity_description in _SELECT_DESCRIPTIONS:
+                        if entity_description.is_supported(device.supported):
+                            new_entities.append(ToshibaAcSelectEntity(device, entity_description))
+                        else:
+                            _LOGGER.info(
+                                "AC device %s does not support %s",
+                                device.name,
+                                entity_description.key,
+                            )
+
+                if new_entities:
+                    _LOGGER.info("Adding %d %s", len(new_entities), "selects")
+                    async_add_devices(new_entities)
+                return
+            except Exception as ex:
+                wait = backoff[min(attempt, len(backoff) - 1)]
+                attempt += 1
+                _LOGGER.warning(
+                    "Toshiba AC: select setup attempt %s failed: %r. Retrying in %s sec",
+                    attempt,
+                    ex,
+                    wait,
                 )
 
-    if new_entities:
-        _LOGGER.info("Adding %d %s", len(new_entities), "selects")
-        async_add_devices(new_entities)
+                # Try to reconnect on specific failures that might indicate token issues
+                if attempt == 1 and ("403" in str(ex) or "Forbidden" in str(ex) or "TimeoutError" in str(ex)):
+                    _LOGGER.info("Attempting to refresh connection due to potential token issue")
+                    try:
+                        await device_manager.connect()
+                        _LOGGER.info("Successfully refreshed connection")
+                        # Reset wait time for immediate retry after successful reconnect
+                        wait = 1
+                    except Exception as connect_ex:
+                        _LOGGER.warning("Failed to refresh connection: %r", connect_ex)
+
+                await asyncio.sleep(wait)
+
+    async def _start_setup_task():
+        task = hass.loop.create_task(_run_setup())
+        hass.data[DOMAIN][f"{config_entry.entry_id}_select_setup_task"] = task
+
+    await _start_setup_task()
 
 
 class ToshibaAcSelectEntity(ToshibaAcStateEntity, SelectEntity):

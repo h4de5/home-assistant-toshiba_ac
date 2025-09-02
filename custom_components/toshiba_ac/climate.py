@@ -68,19 +68,24 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
                     ex,
                     wait,
                 )
+
+                # Try to reconnect on specific failures that might indicate token issues
+                if attempt == 1 and ("403" in str(ex) or "Forbidden" in str(ex) or "TimeoutError" in str(ex)):
+                    _LOGGER.info("Attempting to refresh connection due to potential token issue")
+                    try:
+                        await device_manager.connect()
+                        _LOGGER.info("Successfully refreshed connection")
+                        # Reset wait time for immediate retry after successful reconnect
+                        wait = 1
+                    except Exception as connect_ex:
+                        _LOGGER.warning("Failed to refresh connection: %r", connect_ex)
+
                 await asyncio.sleep(wait)
 
     async def _start_setup_task():
         task = hass.loop.create_task(_run_setup())
         hass.data[DOMAIN][f"{config_entry.entry_id}_setup_task"] = task
 
-    async def _handle_reconnect(call):
-        task = hass.data[DOMAIN].get(f"{config_entry.entry_id}_setup_task")
-        if task and not task.done():
-            task.cancel()
-        await _start_setup_task()
-
-    hass.services.async_register(DOMAIN, "reconnect", _handle_reconnect)
     await _start_setup_task()
 
 

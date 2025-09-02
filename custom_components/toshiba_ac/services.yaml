@@ -1,0 +1,4 @@
+reconnect:
+  name: Reconnect to Toshiba AC
+  description: Force reconnection to Toshiba AC service and reload the integration. Use this if you're experiencing connection issues or authentication problems.
+  fields: {}
