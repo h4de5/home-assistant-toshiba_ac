@@ -1,5 +1,5 @@
 -r requirements.txt
-homeassistant==2025.7.2
+homeassistant==2025.10.2
 # git+https://github.com/home-assistant/core.git@2025.7.2#egg=homeassistant
 # git+https://github.com/KaSroka/azure-iot-sdk-python@kasr/update_paho_mqtt#egg=azure-iot-device
 git+https://github.com/KaSroka/Toshiba-AC-control@main#egg=toshiba-ac
