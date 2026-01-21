@@ -20,41 +20,24 @@ from .entity import ToshibaAcEntity, ToshibaAcStateEntity
 _LOGGER = logging.getLogger(__name__)
 
 
-# This function is called as part of the __init__.async_setup_entry (via the
-# hass.config_entries.async_forward_entry_setup call)
 async def async_setup_entry(hass, config_entry, async_add_devices):
-    """Add sensor for passed config_entry in HA."""
-    # The hub is loaded from the associated hass.data entry that was created in the
-    # __init__.async_setup_entry function
+    """Add sensor entities for passed config_entry in HA."""
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
-
-    # The next few lines find all of the entities that will need to be added
-    # to HA. Note these are all added to a list, so async_add_devices can be
-    # called just once.
-    new_devices = []
+    new_entities = []
 
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
     for device in devices:
-        # _LOGGER.debug("device %s", device)
-        # _LOGGER.debug("energy_consumption %s", device.ac_energy_consumption)
-
-        # if device.ac_energy_consumption:
         if device.supported.ac_energy_report:
-            sensor_entity = ToshibaPowerSensor(device)
-            new_devices.append(sensor_entity)
+            new_entities.append(ToshibaPowerSensor(device))
         else:
-            _LOGGER.info("AC device does not support energy monitoring")
+            _LOGGER.debug("AC device %s does not support energy monitoring", device.name)
 
-        # We cannot check for device.ac_outdoor_temperature not being None
-        # as it will report None when outdoor unit is off
-        # i.e. when AC is in Fan mode or Off
-        sensor_entity = ToshibaTempSensor(device)
-        new_devices.append(sensor_entity)
+        # Outdoor temperature sensor - value may be None when outdoor unit is off
+        new_entities.append(ToshibaTempSensor(device))
 
-    # If we have any new devices, add them
-    if new_devices:
-        _LOGGER.info("Adding %d %s", len(new_devices), "sensors")
-        async_add_devices(new_devices)
+    if new_entities:
+        _LOGGER.info("Adding %d sensor entities", len(new_entities))
+        async_add_devices(new_entities)
 
 
 class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
