@@ -24,7 +24,6 @@ from homeassistant.components.climate.const import (
     HVACMode,
 )
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
-from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import DOMAIN
 from .entity import ToshibaAcStateEntity
@@ -44,21 +43,14 @@ HVAC_MODE_TO_TOSHIBA = {v: k for k, v in TOSHIBA_TO_HVAC_MODE.items()}
 
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
-    """Add climate for passed config_entry in HA."""
+    """Add climate entities for passed config_entry in HA."""
     device_manager = hass.data[DOMAIN][config_entry.entry_id]
-    new_entities = []
 
-    try:
-        devices = await device_manager.get_devices()
-        for device in devices:
-            climate_entity = ToshibaClimate(device)
-            new_entities.append(climate_entity)
-    except Exception as ex:
-        _LOGGER.error("Error during connection to Toshiba server %s", ex)
-        raise ConfigEntryNotReady("Error during connection to Toshiba server") from ex
+    devices = await device_manager.get_devices()
+    new_entities = [ToshibaClimate(device) for device in devices]
 
     if new_entities:
-        _LOGGER.info("Adding %d %s", len(new_entities), "climates")
+        _LOGGER.info("Adding %d climate entities", len(new_entities))
         async_add_devices(new_entities)
 
 
@@ -98,7 +90,7 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         """Set new target temperature."""
         set_temperature = kwargs[ATTR_TEMPERATURE]
 
-        # if hasattr(self._device, "ac_merit_a") and ToshibaAcMeritA.HEATING_8C in self._device.supported.ac_merit_a:
+        # Check if HEATING_8C mode is active (not just supported)
         if (
             hasattr(self._device, "ac_merit_a")
             and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
