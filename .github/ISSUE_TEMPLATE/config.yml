@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: API / Device Communication Issues
+    url: https://github.com/KaSroka/Toshiba-AC-control/issues
+    about: For issues related to communication with the AC device itself, please open an issue in the API repository.
+  - name: Compatible Devices List
+    url: https://github.com/h4de5/home-assistant-toshiba_ac/issues/45
+    about: Check if your device is compatible or add your device to the list.
+  - name: Home Assistant Community
+    url: https://community.home-assistant.io/t/toshiba-home-ac-control/137698
+    about: General questions and discussions about this integration.

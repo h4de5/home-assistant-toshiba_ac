@@ -1,0 +1,116 @@
+name: Bug Report
+description: Report a bug with the Toshiba AC integration
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Before submitting a bug report, please read this carefully!
+
+        ### Is the Toshiba cloud reachable?
+
+        Most issues are caused by **Toshiba's cloud service being temporarily unavailable**. A single failed setup after a restart is **NOT a reason for a bug report**.
+
+        **Do NOT restart Home Assistant multiple times** hoping it will fix the issue:
+        - If Toshiba's cloud is unreachable, restarting won't help
+        - If it IS reachable, too many requests will trigger **rate limiting** on their servers, making it worse
+
+        **Best approach:** Wait 1-2 hours and try again.
+
+        ### Is this an API/communication issue?
+
+        Issues related to **communication with the AC device itself** should be reported to the API repository:
+        👉 [KaSroka/Toshiba-AC-control](https://github.com/KaSroka/Toshiba-AC-control)
+
+        This repository only handles the Home Assistant integration part.
+
+        ### Initial setup failing?
+
+        If you cannot complete the initial setup, check the [Setup Tips in the README](https://github.com/h4de5/home-assistant-toshiba_ac#setup-tips) - password complexity is a common issue.
+
+        ### Is your device compatible?
+
+        - Check the [list of compatible devices](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45)
+        - **Toshiba AC NA (North America) is NOT supported** - those devices use a completely different system. See [midea-ac-py](https://github.com/mill1000/midea-ac-py) instead.
+        - Your device must work with the official [Toshiba AC app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC)
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have waited at least 1-2 hours and the issue persists
+          required: true
+        - label: My device works with the official Toshiba AC app (NOT the North America version)
+          required: true
+        - label: I have checked that this is not an API issue (belongs to [Toshiba-AC-control](https://github.com/KaSroka/Toshiba-AC-control))
+          required: true
+        - label: I have read the [README](https://github.com/h4de5/home-assistant-toshiba_ac#readme) and [compatible devices list](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45)
+          required: true
+        - label: I am providing logs that show errors **specific to this integration** (not general Home Assistant errors)
+          required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      description: What version of Home Assistant are you running?
+      placeholder: "e.g., 2026.1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: integration_version
+    attributes:
+      label: Toshiba AC integration version
+      description: What version of this integration are you using? (Check in HACS or manifest.json)
+      placeholder: "e.g., 2025.3.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation_method
+    attributes:
+      label: Installation method
+      options:
+        - HACS
+        - Manual installation
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: Describe what happened and what you expected to happen
+      placeholder: "Describe the issue..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        Please provide logs **specific to this integration**.
+
+        To get detailed logs, add this to your `configuration.yaml`:
+        ```yaml
+        logger:
+          default: warning
+          logs:
+            custom_components.toshiba_ac: debug
+            toshiba_ac: debug
+        ```
+        Then restart Home Assistant and reproduce the issue.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Any other information that might help (screenshots, device model, etc.)

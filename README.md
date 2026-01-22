@@ -36,11 +36,49 @@ You need a supported (or compatible) Toshiba AC device with either a built-in Wi
 - You need to enter your Toshiba AC account credentials (same as within the app)
 - There is no bounding/registering of new AC units possible with this code - please continue to use the app for this
 
+## Troubleshooting
+
+### Setup Tips
+
+- **Avoid long or complex passwords**: Some users report issues with passwords that are too long or contain special characters. If you have trouble setting up, try using a simpler password in the Toshiba app first.
+- **Use the official app first**: Make sure your AC unit is properly set up and working in the official Toshiba app before adding it to Home Assistant.
+
+### Connection Issues
+
+Most connection problems are caused by **Toshiba's cloud service being temporarily unavailable**.
+
+**Important:**
+- A single failed setup after a Home Assistant restart is **not a bug** - the cloud may just be temporarily unreachable
+- **Do NOT restart Home Assistant repeatedly** - this will trigger rate limiting on Toshiba's servers and make things worse
+- **Best approach:** Wait 1-2 hours and try again
+
+If you continue to have issues:
+1. Enable debug logging (see below)
+2. Check if the official Toshiba app works
+3. Wait and retry after some time
+
+### Debug Logging
+
+Add this to your `configuration.yaml` to enable detailed logging:
+
+```yaml
+logger:
+  default: warning
+  logs:
+    custom_components.toshiba_ac: debug
+    toshiba_ac: debug
+```
+
+### Reporting Issues
+
+- **Home Assistant integration issues**: [Open an issue here](https://github.com/h4de5/home-assistant-toshiba_ac/issues)
+- **API/Device communication issues**: [Open an issue at the API repository](https://github.com/KaSroka/Toshiba-AC-control/issues)
+
 ## Compatible devices
 
-If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware: [List of Supported Devices](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45) - feel free to update that list! 
+If your device is compatible with the [official Toshiba AC mobile app](https://play.google.com/store/apps/details?id=jp.co.toshiba_carrier.ac_control) or [Toshiba Home AC Control](https://play.google.com/store/apps/details?id=com.toshibatctc.SmartAC) it has good chances to be supported by this integration. Furthermore it has been tested with the following hardware: [List of Supported Devices](https://github.com/h4de5/home-assistant-toshiba_ac/issues/45) - feel free to update that list!
 
-Please Note: Toshiba distributes their AC devices with a different app in the US: [Toshiba AC NA](https://play.google.com/store/apps/details?id=com.midea.toshiba&hl=de_AT) (North America). This fork of [the midea_ac_lan extension](https://github.com/mill1000/midea-ac-py) my be able to control a NA-edition AC unit. It doesn't require an account, which is nice.
+> **⚠️ North America Users:** Toshiba distributes their AC devices with a **completely different app and system** in the US: [Toshiba AC NA](https://play.google.com/store/apps/details?id=com.midea.toshiba&hl=de_AT). **This integration will NOT work with North American devices.** Instead, try [midea-ac-py](https://github.com/mill1000/midea-ac-py) which may be able to control NA-edition AC units without requiring an account.
 
 
 ## More links and resources
