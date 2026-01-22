@@ -47,7 +47,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 f"Authentication failed: {ex}. Please reconfigure the integration."
             ) from ex
         # For other errors, let HA retry with exponential backoff
-        raise ConfigEntryNotReady(f"Failed to connect to Toshiba AC service: {ex}") from ex
+        raise ConfigEntryNotReady(
+            f"Failed to connect to Toshiba AC service: {ex}"
+        ) from ex
 
     # Set up SAS token update callback
     async def sas_token_updated(new_sas_token: str) -> None:

@@ -52,20 +52,46 @@ async def async_get_config_entry_diagnostics(
                 "ac_indoor_temperature": device.ac_indoor_temperature,
                 "ac_outdoor_temperature": device.ac_outdoor_temperature,
                 "ac_fan_mode": device.ac_fan_mode.name if device.ac_fan_mode else None,
-                "ac_swing_mode": device.ac_swing_mode.name if device.ac_swing_mode else None,
-                "ac_power_selection": device.ac_power_selection.name if device.ac_power_selection else None,
+                "ac_swing_mode": device.ac_swing_mode.name
+                if device.ac_swing_mode
+                else None,
+                "ac_power_selection": device.ac_power_selection.name
+                if device.ac_power_selection
+                else None,
                 "ac_merit_a": device.ac_merit_a.name if device.ac_merit_a else None,
                 "ac_merit_b": device.ac_merit_b.name if device.ac_merit_b else None,
-                "ac_air_pure_ion": device.ac_air_pure_ion.name if device.ac_air_pure_ion else None,
-                "ac_self_cleaning": device.ac_self_cleaning.name if device.ac_self_cleaning else None,
+                "ac_air_pure_ion": device.ac_air_pure_ion.name
+                if device.ac_air_pure_ion
+                else None,
+                "ac_self_cleaning": device.ac_self_cleaning.name
+                if device.ac_self_cleaning
+                else None,
                 "supported_features": {
-                    "ac_mode": [m.name for m in device.supported.ac_mode] if device.supported.ac_mode else [],
-                    "ac_fan_mode": [m.name for m in device.supported.ac_fan_mode] if device.supported.ac_fan_mode else [],
-                    "ac_swing_mode": [m.name for m in device.supported.ac_swing_mode] if device.supported.ac_swing_mode else [],
-                    "ac_power_selection": [m.name for m in device.supported.ac_power_selection] if device.supported.ac_power_selection else [],
-                    "ac_merit_a": [m.name for m in device.supported.ac_merit_a] if device.supported.ac_merit_a else [],
-                    "ac_merit_b": [m.name for m in device.supported.ac_merit_b] if device.supported.ac_merit_b else [],
-                    "ac_air_pure_ion": [m.name for m in device.supported.ac_air_pure_ion] if device.supported.ac_air_pure_ion else [],
+                    "ac_mode": [m.name for m in device.supported.ac_mode]
+                    if device.supported.ac_mode
+                    else [],
+                    "ac_fan_mode": [m.name for m in device.supported.ac_fan_mode]
+                    if device.supported.ac_fan_mode
+                    else [],
+                    "ac_swing_mode": [m.name for m in device.supported.ac_swing_mode]
+                    if device.supported.ac_swing_mode
+                    else [],
+                    "ac_power_selection": [
+                        m.name for m in device.supported.ac_power_selection
+                    ]
+                    if device.supported.ac_power_selection
+                    else [],
+                    "ac_merit_a": [m.name for m in device.supported.ac_merit_a]
+                    if device.supported.ac_merit_a
+                    else [],
+                    "ac_merit_b": [m.name for m in device.supported.ac_merit_b]
+                    if device.supported.ac_merit_b
+                    else [],
+                    "ac_air_pure_ion": [
+                        m.name for m in device.supported.ac_air_pure_ion
+                    ]
+                    if device.supported.ac_air_pure_ion
+                    else [],
                     "ac_energy_report": device.supported.ac_energy_report,
                 },
             }

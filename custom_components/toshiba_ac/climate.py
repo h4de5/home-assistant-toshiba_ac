@@ -90,7 +90,7 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         """Set new target temperature."""
         set_temperature = kwargs[ATTR_TEMPERATURE]
 
-        # if hasattr(self._device, "ac_merit_a") and ToshibaAcMeritA.HEATING_8C in self._device.supported.ac_merit_a:
+        # Check if HEATING_8C mode is active (not just supported)
         if (
             hasattr(self._device, "ac_merit_a")
             and self._device.ac_merit_a == ToshibaAcMeritA.HEATING_8C
