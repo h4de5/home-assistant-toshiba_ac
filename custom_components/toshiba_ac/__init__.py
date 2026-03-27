@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers.event import async_track_time_interval
 
 from .const import DOMAIN
 
 PLATFORMS = ["climate", "select", "sensor", "switch"]
+RECONNECT_INTERVAL = timedelta(minutes=5)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +64,39 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     device_manager.on_sas_token_updated_callback.add(sas_token_updated)
 
     # Store device manager
-    hass.data[DOMAIN][entry.entry_id] = device_manager
+    hass.data[DOMAIN][entry.entry_id] = {
+        "device_manager": device_manager,
+        "unsub_reconnect": None,
+    }
+
+    # Set up periodic connectivity check and auto-reconnect
+    async def _async_check_connectivity(_now=None) -> None:
+        """Check AMQP connectivity and reconnect if needed."""
+        devices = device_manager.devices
+        if not devices:
+            return
+
+        # Check if any device has lost its AMQP connection
+        any_unavailable = any(
+            not (d.amqp_api.sas_token and d.http_api.access_token)
+            for d in devices
+        )
+
+        if any_unavailable:
+            _LOGGER.warning(
+                "Toshiba AC connectivity lost, attempting reconnect"
+            )
+            try:
+                new_token = await device_manager.connect()
+                if new_token and new_token != entry.data.get("sas_token"):
+                    new_data = {**entry.data, "sas_token": new_token}
+                    hass.config_entries.async_update_entry(entry, data=new_data)
+                _LOGGER.info("Toshiba AC reconnected successfully")
+            except Exception as ex:
+                _LOGGER.debug("Toshiba AC reconnect failed: %s", ex)
+
+    unsub = async_track_time_interval(hass, _async_check_connectivity, RECONNECT_INTERVAL)
+    hass.data[DOMAIN][entry.entry_id]["unsub_reconnect"] = unsub
 
     # Register reconnect service (once per domain)
     await _async_register_services(hass)
@@ -94,7 +129,15 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        device_manager: ToshibaAcDeviceManager = hass.data[DOMAIN].pop(entry.entry_id)
+        entry_data = hass.data[DOMAIN].pop(entry.entry_id)
+        # Handle both old format (direct manager) and new format (dict)
+        if isinstance(entry_data, dict):
+            device_manager = entry_data["device_manager"]
+            unsub = entry_data.get("unsub_reconnect")
+            if unsub:
+                unsub()
+        else:
+            device_manager = entry_data
         try:
             await device_manager.shutdown()
         except Exception as ex:
