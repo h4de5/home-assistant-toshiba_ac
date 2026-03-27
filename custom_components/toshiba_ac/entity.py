@@ -56,5 +56,7 @@ class ToshibaAcStateEntity(ToshibaAcEntity):
 
     def _state_changed(self, _device: ToshibaAcDevice) -> None:
         """Call when the Toshiba AC device state changes."""
+        if not self.hass or not self.enabled:
+            return
         self.update_attrs()
         self.async_write_ha_state()

@@ -26,7 +26,8 @@ async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    device_manager = hass.data[DOMAIN].get(entry.entry_id)
+    entry_data = hass.data[DOMAIN].get(entry.entry_id)
+    device_manager = entry_data["device_manager"] if isinstance(entry_data, dict) else entry_data
 
     diagnostics_data: dict[str, Any] = {
         "config_entry": async_redact_data(entry.as_dict(), TO_REDACT),

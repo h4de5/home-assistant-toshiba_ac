@@ -44,7 +44,8 @@ HVAC_MODE_TO_TOSHIBA = {v: k for k, v in TOSHIBA_TO_HVAC_MODE.items()}
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add climate entities for passed config_entry in HA."""
-    device_manager = hass.data[DOMAIN][config_entry.entry_id]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    device_manager = entry_data["device_manager"] if isinstance(entry_data, dict) else entry_data
 
     devices = await device_manager.get_devices()
     new_entities = [ToshibaClimate(device) for device in devices]

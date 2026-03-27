@@ -22,7 +22,8 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
     """Add sensor entities for passed config_entry in HA."""
-    device_manager = hass.data[DOMAIN][config_entry.entry_id]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    device_manager = entry_data["device_manager"] if isinstance(entry_data, dict) else entry_data
     new_entities = []
 
     devices: list[ToshibaAcDevice] = await device_manager.get_devices()
