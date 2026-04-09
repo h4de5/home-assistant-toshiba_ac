@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import date, datetime
 import logging
 
-from toshiba_ac.device import ToshibaAcDevice, ToshibaAcDeviceEnergyConsumption
+from .toshiba_ac.device import ToshibaAcDevice, ToshibaAcDeviceEnergyConsumption
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,

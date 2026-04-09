@@ -6,7 +6,7 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from toshiba_ac.device_manager import ToshibaAcDeviceManager
+from .toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall

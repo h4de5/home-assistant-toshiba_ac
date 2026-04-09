@@ -4,7 +4,7 @@ from enum import Enum
 import logging
 from typing import Any, TypeVar
 
-from toshiba_ac.utils import pretty_enum_name
+from .toshiba_ac.utils import pretty_enum_name
 
 _LOGGER = logging.getLogger(__name__)
 
