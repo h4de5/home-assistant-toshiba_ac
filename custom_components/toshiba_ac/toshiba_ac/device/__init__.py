@@ -20,9 +20,9 @@ import struct
 import typing as t
 from dataclasses import dataclass
 
-from toshiba_ac.device.fcu_state import ToshibaAcFcuState
-from toshiba_ac.device.features import ToshibaAcFeatures
-from toshiba_ac.device.properties import (
+from ..device.fcu_state import ToshibaAcFcuState
+from ..device.features import ToshibaAcFeatures
+from ..device.properties import (
     ToshibaAcAirPureIon,
     ToshibaAcDeviceEnergyConsumption,
     ToshibaAcFanMode,
@@ -34,9 +34,9 @@ from toshiba_ac.device.properties import (
     ToshibaAcStatus,
     ToshibaAcSwingMode,
 )
-from toshiba_ac.utils import async_sleep_until_next_multiply_of_minutes, pretty_enum_name, ToshibaAcCallback
-from toshiba_ac.utils.amqp_api import ToshibaAcAmqpApi, JSONSerializable
-from toshiba_ac.utils.http_api import ToshibaAcHttpApi
+from ..utils import async_sleep_until_next_multiply_of_minutes, pretty_enum_name, ToshibaAcCallback
+from ..utils.amqp_api import ToshibaAcAmqpApi, JSONSerializable
+from ..utils.http_api import ToshibaAcHttpApi
 
 logger = logging.getLogger(__name__)
 

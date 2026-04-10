@@ -17,7 +17,7 @@ from __future__ import annotations
 import struct
 import typing as t
 
-from toshiba_ac.device.properties import (
+from ..device.properties import (
     ToshibaAcAirPureIon,
     ToshibaAcFanMode,
     ToshibaAcMeritA,
