@@ -14,6 +14,7 @@
 
 import datetime
 import logging
+import random
 import typing as t
 from dataclasses import dataclass
 
@@ -64,6 +65,20 @@ class ToshibaAcHttpApi:
         self.access_token_type: t.Optional[str] = None
         self.consumer_id: t.Optional[str] = None
         self.session: t.Optional[aiohttp.ClientSession] = None
+        if random.randint(0, 1) == 1:
+            self.user_agent = (
+                f"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_{random.randint(10, 16)}_{random.randint(0, 20)}) "
+                f"AppleWebKit/{random.randint(500, 550)}.{random.randint(0, 99)} "
+                f"(KHTML, like Gecko) Chrome/{random.randint(130, 160)}.0.0.0 "
+                f"Safari/{random.randint(500, 550)}.{random.randint(0, 99)}"
+            )
+        else:
+            self.user_agent = (
+                f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                f"AppleWebKit/{random.randint(500, 550)}.{random.randint(0, 99)} "
+                f"(KHTML, like Gecko) Chrome/{random.randint(130, 160)}.0.0.0 "
+                f"Safari/{random.randint(500, 550)}.{random.randint(0, 99)}"
+            )
 
     @retry_with_timeout(timeout=5, retries=3, backoff=60)
     @retry_on_exception(exceptions=ToshibaAcHttpApiError, retries=3, backoff=60)
@@ -81,9 +96,7 @@ class ToshibaAcHttpApi:
             headers = {}
             headers["Content-Type"] = "application/json"
             headers["Authorization"] = self.access_token_type + " " + self.access_token
-            headers["User-Agent"] = (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-            )
+            headers["User-Agent"] = self.user_agent
 
         url = self.BASE_URL + path
 
