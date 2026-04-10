@@ -5,8 +5,8 @@ import logging
 import random
 from typing import Any
 
-from toshiba_ac.device_manager import ToshibaAcDeviceManager
-from toshiba_ac.utils.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
+from .toshiba_ac.device_manager import ToshibaAcDeviceManager
+from .toshiba_ac.utils.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
 import voluptuous as vol
 
 from homeassistant import config_entries
