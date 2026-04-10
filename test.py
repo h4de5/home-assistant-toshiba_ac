@@ -6,11 +6,12 @@ import random
 import sys
 from rich import print_json
 
-
 sys.path.insert(1, "custom_components/toshiba_ac")
 
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 from toshiba_ac.utils.http_api import ToshibaAcHttpApiAuthError, ToshibaAcHttpApiError
+from toshiba_ac.device import ToshibaAcDevice
+
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -29,7 +30,7 @@ class ToshibaClient:
         self._device_manager: ToshibaAcDeviceManager | None = None
 
     async def get_token(self):
-        self._device_manager = ToshibaAcDeviceManager(username, password, device_id)
+        self._device_manager = ToshibaAcDeviceManager(self._username, self._password, self._device_id)
         try:
             self._sas_token = await self._device_manager.connect()
             self._device_manager.on_sas_token_updated_callback.add(self._sas_token_updated)
@@ -109,6 +110,11 @@ class ToshibaClient:
         except Exception as ex:
             _LOGGER.warning("Reconnection attempt failed: %s", ex)
 
+    async def disconnect(self):
+        if self._device_manager:
+            await self._device_manager.shutdown()
+            self._device_manager = None
+
     async def connect(self):
         self._device_manager = ToshibaAcDeviceManager(self._username, self._password, self._device_id, self._sas_token)
         try:
@@ -135,12 +141,55 @@ class ToshibaClient:
             else:
                 _LOGGER.error("Failed to connect t failed. Please reconfigure the integration. %s", ex)
 
+    def on_state_changed(self, _device: ToshibaAcDevice):
+        _LOGGER.debug("Changed state %s : %s", _device.name, _device.ac_status)
+
     async def get_data(self):
         _LOGGER.debug("Extracting devices data")
         devices = await self._device_manager.get_devices()
         data = []
         for device in devices:
-            data.append({"device_id": device.device_id, "name": device.name, "mode": str(device.ac_mode)})
+            device.on_state_changed_callback.add(self.on_state_changed)
+            device_info = {
+                "name": device.name,
+                "ac_id": "**REDACTED**",
+                "ac_unique_id": "**REDACTED**",
+                "device_id": "**REDACTED**",
+                "firmware_version": device.firmware_version,
+                "ac_status": device.ac_status.name if device.ac_status else None,
+                "ac_mode": device.ac_mode.name if device.ac_mode else None,
+                "ac_temperature": device.ac_temperature,
+                "ac_indoor_temperature": device.ac_indoor_temperature,
+                "ac_outdoor_temperature": device.ac_outdoor_temperature,
+                "ac_fan_mode": device.ac_fan_mode.name if device.ac_fan_mode else None,
+                "ac_swing_mode": device.ac_swing_mode.name if device.ac_swing_mode else None,
+                "ac_power_selection": device.ac_power_selection.name if device.ac_power_selection else None,
+                "ac_merit_a": device.ac_merit_a.name if device.ac_merit_a else None,
+                "ac_merit_b": device.ac_merit_b.name if device.ac_merit_b else None,
+                "ac_air_pure_ion": device.ac_air_pure_ion.name if device.ac_air_pure_ion else None,
+                "ac_self_cleaning": device.ac_self_cleaning.name if device.ac_self_cleaning else None,
+                "supported_features": {
+                    "ac_mode": [m.name for m in device.supported.ac_mode] if device.supported.ac_mode else [],
+                    "ac_fan_mode": (
+                        [m.name for m in device.supported.ac_fan_mode] if device.supported.ac_fan_mode else []
+                    ),
+                    "ac_swing_mode": (
+                        [m.name for m in device.supported.ac_swing_mode] if device.supported.ac_swing_mode else []
+                    ),
+                    "ac_power_selection": (
+                        [m.name for m in device.supported.ac_power_selection]
+                        if device.supported.ac_power_selection
+                        else []
+                    ),
+                    "ac_merit_a": [m.name for m in device.supported.ac_merit_a] if device.supported.ac_merit_a else [],
+                    "ac_merit_b": [m.name for m in device.supported.ac_merit_b] if device.supported.ac_merit_b else [],
+                    "ac_air_pure_ion": (
+                        [m.name for m in device.supported.ac_air_pure_ion] if device.supported.ac_air_pure_ion else []
+                    ),
+                    "ac_energy_report": device.supported.ac_energy_report,
+                },
+            }
+            data.append(device_info)
         print_json(data=data)
 
 
@@ -155,7 +204,12 @@ async def main():
         device_id = data.get("device_id", None)
     client = ToshibaClient(username=username, password=password, device_id=device_id, sas_token=token)
     await client.connect()
+    await asyncio.sleep(5)
     await client.get_data()
+    await asyncio.sleep(2)
+    # await client.check_connection()
+    await client.disconnect()
+    exit(0)
 
 
 if __name__ == "__main__":
