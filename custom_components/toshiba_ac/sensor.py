@@ -71,6 +71,14 @@ class ToshibaPowerSensor(ToshibaAcEntity, SensorEntity):
         # (rather than in the __init__)
         # self._device.register_callback(self.async_write_ha_state)
         self._device.on_energy_consumption_changed_callback.add(self.state_changed)
+        # Bootstrap: surface the cached value if energy data was already fetched
+        # before this entity finished registering. Without this, the very first
+        # poll's value is silently dropped (the callback only fires on subsequent
+        # changes), and the sensor stays "unknown" until the cumulative reading
+        # actually changes — which can take a long time on idle/low-load AC units.
+        if self._device.ac_energy_consumption is not None:
+            self._ac_energy_consumption = self._device.ac_energy_consumption
+            self.async_write_ha_state()
 
     async def async_will_remove_from_hass(self):
         """Entity being removed from hass."""
