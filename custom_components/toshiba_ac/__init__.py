@@ -4,6 +4,67 @@ from __future__ import annotations
 
 import logging
 
+
+def _toshiba_patch_from_raw() -> None:
+    """Make `from_raw` methods in toshiba_ac.device.fcu_state tolerant of unknown raw values.
+
+    The toshiba_ac library (KaSroka/Toshiba-AC-control) uses dict lookups in
+    `from_raw` static methods on nested classes of `ToshibaAcFcuState` (e.g.
+    `AcSwingMode`, `AcFanMode`). When a device reports a raw enum value the
+    library does not map (observed in the wild: `AcSwingMode` raw value 96),
+    the lookup raises `KeyError`, which:
+
+      - prevents the climate entity from being added during setup
+        (`Error adding entity climate.ac_toshiba ...`), and
+      - aborts every command path that internally reads the future state
+        (`send_state_to_ac` reads `ac_swing_mode` to validate support).
+
+    This patch wraps every nested `from_raw` so unknown values resolve to the
+    `NONE` value of the corresponding target enum. The `NONE` value is obtained
+    by calling the original `from_raw` with `ToshibaAcFcuState.NONE_VAL`, which
+    every mapping defines, so we do not need to import each target enum.
+    """
+    from toshiba_ac.device.fcu_state import ToshibaAcFcuState
+
+    none_val = ToshibaAcFcuState.NONE_VAL
+    patched: list[str] = []
+
+    for name in dir(ToshibaAcFcuState):
+        if name.startswith("_"):
+            continue
+        cls = getattr(ToshibaAcFcuState, name, None)
+        if not isinstance(cls, type) or not hasattr(cls, "from_raw"):
+            continue
+
+        original = cls.from_raw
+        try:
+            default = original(none_val)
+        except Exception:  # noqa: BLE001 — skip enums whose NONE_VAL mapping is missing
+            continue
+
+        def _make_safe(orig, default_val):
+            def safe_from_raw(raw):
+                try:
+                    return orig(raw)
+                except (KeyError, ValueError):
+                    return default_val
+            return safe_from_raw
+
+        cls.from_raw = staticmethod(_make_safe(original, default))
+        patched.append(name)
+
+    logging.getLogger(__name__).info(
+        "toshiba_ac safe-from_raw applied to: %s", ", ".join(patched) or "(none)"
+    )
+
+
+try:
+    _toshiba_patch_from_raw()
+except Exception:  # noqa: BLE001 — the patch must never break integration import
+    logging.getLogger(__name__).exception(
+        "Could not apply toshiba_ac safe from_raw patch"
+    )
+
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 
 from homeassistant.config_entries import ConfigEntry

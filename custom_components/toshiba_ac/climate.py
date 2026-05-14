@@ -125,7 +125,10 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
         if not self.is_on:
             return None
 
-        return pretty_enum_name(self._device.ac_power_selection)
+        try:
+            return pretty_enum_name(self._device.ac_power_selection)
+        except Exception:  # noqa: BLE001 — defensive against unknown enum raw values
+            return None
 
     @property
     def preset_modes(self) -> list[str] | None:
@@ -205,7 +208,10 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
     @property
     def fan_mode(self) -> str | None:
         """Return the fan setting."""
-        return pretty_enum_name(self._device.ac_fan_mode)
+        try:
+            return pretty_enum_name(self._device.ac_fan_mode)
+        except Exception:  # noqa: BLE001 — defensive against unknown enum raw values
+            return None
 
     async def async_set_swing_mode(self, swing_mode: str) -> None:
         """Set new target swing operation."""
@@ -217,7 +223,10 @@ class ToshibaClimate(ToshibaAcStateEntity, ClimateEntity):
     @property
     def swing_mode(self) -> str | None:
         """Return the swing setting."""
-        return pretty_enum_name(self._device.ac_swing_mode)
+        try:
+            return pretty_enum_name(self._device.ac_swing_mode)
+        except Exception:  # noqa: BLE001 — defensive against unknown enum raw values
+            return None
 
     @property
     def current_temperature(self) -> float | None:
