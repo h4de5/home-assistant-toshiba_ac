@@ -10,9 +10,10 @@
   "issue_tracker": "https://github.com/h4de5/home-assistant-toshiba_ac/issues",
   "requirements": [
     "toshiba-ac==0.3.13",
+    "azure-iot-device==2.15.0rc1",
     "janus==1.0.0"
   ],
   "ssdp": [],
-  "version": "2026.5.0",
+  "version": "2026.5.1",
   "zeroconf": []
 }
