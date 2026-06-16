@@ -8,6 +8,7 @@ import secrets
 import aiohttp
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
 from toshiba_ac.utils import http_api as toshiba_http_api
+from toshiba_ac.utils.http_api import ToshibaAcHttpApiAuthError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -37,6 +38,93 @@ PLATFORMS = ["climate", "select", "sensor", "switch"]
 
 _LOGGER = logging.getLogger(__name__)
 
+try:
+    from azure.iot.device import exceptions as azure_exceptions
+except ImportError:  # pragma: no cover
+    azure_exceptions = None
+
+
+def _is_auth_error(exc: Exception) -> bool:
+    """Check whether exception chain indicates authentication/credential failure."""
+    seen: set[int] = set()
+    current: Exception | None = exc
+
+    while current and id(current) not in seen:
+        seen.add(id(current))
+
+        if isinstance(current, ToshibaAcHttpApiAuthError):
+            return True
+
+        if azure_exceptions and isinstance(current, azure_exceptions.CredentialError):
+            return True
+
+        message = str(current).lower()
+        if any(
+            marker in message
+            for marker in (
+                "credentials invalid",
+                "invalid username or password",
+                "invalid_grant",
+                "unauthorized",
+                "authentication failed",
+                " 401",
+                " 403",
+            )
+        ):
+            return True
+
+        next_exc = current.__cause__ or current.__context__
+        current = next_exc if isinstance(next_exc, Exception) else None
+
+    return False
+
+
+async def _connect_with_token_refresh_fallback(
+    entry: ConfigEntry,
+) -> tuple[ToshibaAcDeviceManager, str]:
+    """Connect using stored token, then retry once with refreshed token on auth failure."""
+    username = entry.data["username"]
+    password = entry.data["password"]
+    device_id = entry.data["device_id"]
+    stored_sas_token = entry.data.get("sas_token")
+
+    device_manager = ToshibaAcDeviceManager(
+        username,
+        password,
+        device_id,
+        stored_sas_token,
+    )
+
+    try:
+        sas_token = await device_manager.connect()
+        return device_manager, sas_token
+    except Exception as first_error:
+        if not stored_sas_token or not _is_auth_error(first_error):
+            await device_manager.shutdown()
+            raise
+
+        _LOGGER.warning(
+            "Initial Toshiba connect failed with stored SAS token. "
+            "Retrying once with token refresh: %s",
+            first_error,
+        )
+
+        await device_manager.shutdown()
+
+        refreshed_manager = ToshibaAcDeviceManager(
+            username,
+            password,
+            device_id,
+            None,
+        )
+
+        try:
+            sas_token = await refreshed_manager.connect()
+            return refreshed_manager, sas_token
+        except Exception:
+            await refreshed_manager.shutdown()
+            raise
+
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Toshiba AC component."""
@@ -46,28 +134,19 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Toshiba AC from a config entry."""
-    device_manager = ToshibaAcDeviceManager(
-        entry.data["username"],
-        entry.data["password"],
-        entry.data["device_id"],
-        entry.data.get("sas_token"),
-    )
-
     try:
-        new_sas_token = await device_manager.connect()
-        # Save updated SAS token if we got a new one
+        device_manager, new_sas_token = await _connect_with_token_refresh_fallback(entry)
+
         if new_sas_token and new_sas_token != entry.data.get("sas_token"):
             _LOGGER.info("SAS token updated during connection")
             new_data = {**entry.data, "sas_token": new_sas_token}
             hass.config_entries.async_update_entry(entry, data=new_data)
     except Exception as ex:
-        error_str = str(ex).lower()
-        # Check for authentication-related errors
-        if "401" in error_str or "403" in error_str or "auth" in error_str:
+        if _is_auth_error(ex):
             raise ConfigEntryAuthFailed(
                 f"Authentication failed: {ex}. Please reconfigure the integration."
             ) from ex
-        # For other errors, let HA retry with exponential backoff
+
         raise ConfigEntryNotReady(
             f"Failed to connect to Toshiba AC service: {ex}"
         ) from ex
