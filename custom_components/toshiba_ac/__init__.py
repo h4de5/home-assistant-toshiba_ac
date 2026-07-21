@@ -3,14 +3,35 @@
 from __future__ import annotations
 
 import logging
+import secrets
 
+import aiohttp
 from toshiba_ac.device_manager import ToshibaAcDeviceManager
+from toshiba_ac.utils import http_api as toshiba_http_api
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 
 from .const import DOMAIN
+
+# Monkey-patch: Toshiba's WAF requires a Device-ID header since ~2026-07-17.
+# The upstream library (v0.3.11) doesn't include it, so we patch _ensure_session
+# to add a random Device-ID to the aiohttp session headers.
+
+
+async def _patched_ensure_session(self: toshiba_http_api.ToshibaAcHttpApi) -> None:
+    """Patched session creation with Device-ID header for WAF compatibility."""
+    async with self._session_lock:
+        if not self.session or self.session.closed:
+            timeout = aiohttp.ClientTimeout(total=20, connect=10, sock_read=15)
+            self.session = aiohttp.ClientSession(
+                timeout=timeout,
+                headers={"Device-ID": secrets.token_hex(8)},
+            )
+
+
+toshiba_http_api.ToshibaAcHttpApi._ensure_session = _patched_ensure_session
 
 PLATFORMS = ["climate", "select", "sensor", "switch"]
 
