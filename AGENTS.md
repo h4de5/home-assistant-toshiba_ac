@@ -39,6 +39,23 @@ toshibaamqp.py           # MQTT/AMQP messaging component
 
 ## Development
 
+### Environment Setup
+
+System packages required (Debian/Ubuntu):
+```bash
+apt install python3 python3-pip python3.11-venv
+```
+
+Create venv and install dependencies:
+```bash
+python3 -m venv .venv
+.venv/bin/pip install --upgrade pip
+# Install toshiba-ac from git (PyPI version has broken git dependency)
+.venv/bin/pip install "toshiba-ac @ git+https://github.com/KaSroka/Toshiba-AC-control@v0.3.11" janus==1.0.0
+# Install dev tools
+.venv/bin/pip install pre-commit black isort flake8 yamllint codespell pyupgrade
+```
+
 ### Pre-commit Hooks
 
 The project uses pre-commit with the following tools:
@@ -51,17 +68,18 @@ The project uses pre-commit with the following tools:
 
 ### Commands
 
+All commands use the venv:
 ```bash
-# Install pre-commit
-pre-commit install
+# Install pre-commit hooks
+.venv/bin/pre-commit install
 
 # Run all hooks
-pre-commit run --all-files
+.venv/bin/pre-commit run --all-files
 
 # Single hook
-pre-commit run black --all-files
-pre-commit run flake8 --all-files
-pre-commit run isort --all-files
+.venv/bin/pre-commit run black --all-files
+.venv/bin/pre-commit run flake8 --all-files
+.venv/bin/pre-commit run isort --all-files
 ```
 
 ## Technical Details
