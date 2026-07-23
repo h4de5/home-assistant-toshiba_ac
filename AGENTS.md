@@ -5,7 +5,7 @@ Home Assistant Custom Integration for Toshiba air conditioners. Enables control 
 ## Project Overview
 
 - **Domain:** `toshiba_ac`
-- **Version:** 2026.1.0
+- **Version:** 2026.7.0
 - **Home Assistant IoT Class:** `cloud_push`
 - **HACS Compatible:** Yes
 - **Repository:** https://github.com/h4de5/home-assistant-toshiba_ac
@@ -101,3 +101,13 @@ All commands use the venv:
 - `requirements_dev.txt` - Development alternatives
 - `custom_components/toshiba_ac/` - Main integration
 - `README.md` - Full documentation
+
+## Release
+
+When creating a new version, update the version in **both** files:
+1. `custom_components/toshiba_ac/manifest.json` → `"version": "YYYY.M.PATCH"`
+2. `AGENTS.md` → `**Version:** YYYY.M.PATCH`
+
+Format: `YYYY.M.PATCH` (e.g., `2026.7.0`)
+- One version per release, based on current month
+- Multiple releases in same month: increment patch (e.g., `2026.7.0`, `2026.7.1`, `2026.7.2`)
