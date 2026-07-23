@@ -39,6 +39,11 @@ toshibaamqp.py           # MQTT/AMQP messaging component
 
 ## Development
 
+**Before presenting any code changes, run pre-commit hooks and fix issues:**
+```bash
+.venv/bin/pre-commit run --all-files
+```
+
 ### Environment Setup
 
 System packages required (Debian/Ubuntu):
