@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 
@@ -53,13 +54,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get("sas_token"),
     )
 
+    # The underlying azure-iot-device SDK's own retry loop has no cap: on a
+    # persistently failing connection (e.g. https://github.com/h4de5/home-assistant-toshiba_ac/issues/282)
+    # it retries forever and never returns or raises, which would otherwise
+    # block HA's entire startup indefinitely. Force a bound on it here.
     try:
-        new_sas_token = await device_manager.connect()
+        new_sas_token = await asyncio.wait_for(device_manager.connect(), timeout=60)
         # Save updated SAS token if we got a new one
         if new_sas_token and new_sas_token != entry.data.get("sas_token"):
             _LOGGER.info("SAS token updated during connection")
             new_data = {**entry.data, "sas_token": new_sas_token}
             hass.config_entries.async_update_entry(entry, data=new_data)
+    except asyncio.TimeoutError as ex:
+        raise ConfigEntryNotReady(
+            "Timed out connecting to Toshiba AC cloud service after 60s"
+        ) from ex
     except Exception as ex:
         error_str = str(ex).lower()
         # Check for authentication-related errors
