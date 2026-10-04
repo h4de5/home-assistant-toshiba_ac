@@ -107,6 +107,13 @@ All commands use the venv:
 - `custom_components/toshiba_ac/` - Main integration
 - `README.md` - Full documentation
 
+## Language
+
+English is the language of this repository. This applies to documentation,
+commit messages, PR titles and PR descriptions, code comments and issue
+comments. The only exception is `docs-internal/`, which is German because it
+never leaves this machine.
+
 ## Documentation
 
 `docs/` contains publishable documentation only — anything that may be copied out
