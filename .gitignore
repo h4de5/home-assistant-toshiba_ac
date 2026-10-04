@@ -137,7 +137,6 @@ logos/Thumbs.db
 # NOTE: docs/ must stay publishable documentation - never put anything local,
 # private or secret in there. Internal notes belong here instead.
 /docs-internal/
-docs/test-scenarios-local.md
 
 # secrets (tokens, passwords) - repository root, never committed
 /secrets.env
