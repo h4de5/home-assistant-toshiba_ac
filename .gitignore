@@ -132,3 +132,16 @@ dmypy.json
 logos/@eaDir/
 logos/Thumbs.db
 *.bac
+
+# internal documentation (contains IPs, hostnames, issue analysis)
+# NOTE: docs/ must stay publishable documentation - never put anything local,
+# private or secret in there. Internal notes belong here instead.
+/docs-internal/
+docs/test-scenarios-local.md
+
+# secrets (tokens, passwords) - repository root, never committed
+/secrets.env
+
+# project config (contains local HA URLs and tokens)
+opencode.json
+
