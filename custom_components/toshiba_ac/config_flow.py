@@ -1,6 +1,7 @@
 """Config flow for Toshiba AC integration."""
 from __future__ import annotations
 
+import asyncio
 import logging
 import random
 from typing import Any
@@ -40,8 +41,12 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     )
 
     try:
-        sas_token = await device_manager.connect()
+        # Add timeout around connect() to prevent hanging indefinitely
+        sas_token = await asyncio.wait_for(device_manager.connect(), timeout=30)
 
+    except asyncio.TimeoutError as ex:
+        _LOGGER.error("Toshiba connection timed out after 30 seconds")
+        raise CannotConnect from ex
     except ToshibaAcHttpApiAuthError as ex:
         _LOGGER.error("Toshiba connection error %s", ex)
         raise InvalidAuth from ex
